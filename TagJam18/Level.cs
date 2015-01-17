@@ -33,7 +33,11 @@ namespace TagJam18
         private const string groundEffectSamplerStateId = "Level/GroundEffectSamplerState";
         private GeometricPrimitive decalMesh;
         private const string decalMeshId = "Level/DecalMesh";
-        private const float groundTextureSize = 10f;
+        private const float groundTextureSize = 7f;
+        private const int minNumGroundDecals = 2;
+        private const float groundShrinkage = 0.5f; // Shrink to end at the center of outer walls
+        private float GroundWidth;
+        private float GroundHeight;
 
         private class GroundDecal
         {
@@ -46,8 +50,8 @@ namespace TagJam18
             {
                 this.DecalNumber = decalNumber;
                 this.Position = new Vector3(
-                    (float)tileX * groundTextureSize + groundTextureSize / 2f,
-                    (float)tileY * groundTextureSize + groundTextureSize / 2f,
+                    (float)tileX * groundTextureSize + groundTextureSize / 2f + groundShrinkage,
+                    (float)tileY * groundTextureSize + groundTextureSize / 2f + groundShrinkage,
                     0f
                 );
 
@@ -119,7 +123,9 @@ namespace TagJam18
                 concreteDecals.Add(LoadConcreteTexture(i));
             }
 
-            groundMesh = GeometricPrimitive.Plane.New(ParentGame.GraphicsDevice, Width, Height, 1, new Vector2(Width / groundTextureSize, Height / groundTextureSize));
+            GroundWidth = Width - groundShrinkage * 2;
+            GroundHeight = Height - groundShrinkage * 2;
+            groundMesh = GeometricPrimitive.Plane.New(ParentGame.GraphicsDevice, GroundWidth, GroundHeight, 1, new Vector2(GroundWidth / groundTextureSize, GroundHeight / groundTextureSize));
             decalMesh = ParentGame.Resources.Get<GeometricPrimitive>(decalMeshId, () => GeometricPrimitive.Plane.New(ParentGame.GraphicsDevice, groundTextureSize, groundTextureSize));
 
             SamplerStateDescription samplerStateDescription = ((DxSamplerState)ParentGame.BasicEffect.Sampler).Description;
@@ -138,16 +144,15 @@ namespace TagJam18
             groundEffect.EnableDefaultLighting();
 
             // Make decals
-            int maxDecalX = (int)(Width / groundTextureSize);
-            int maxDecalY = (int)(Height / groundTextureSize);
-            const int minNumDecals = 2;
+            int maxDecalX = (int)(GroundWidth / groundTextureSize);
+            int maxDecalY = (int)(GroundHeight / groundTextureSize);
             int maxNumDecals = maxDecalX * maxDecalY;
             Random r = new Random();
             int numDecals;
-            if (minNumDecals < maxNumDecals)
-            { numDecals = r.Next(minNumDecals, maxNumDecals); }
+            if (minNumGroundDecals < maxNumDecals)
+            { numDecals = r.Next(minNumGroundDecals, maxNumDecals); }
             else
-            { numDecals = maxNumDecals = minNumDecals; }
+            { numDecals = maxNumDecals = minNumGroundDecals; }
 
             for (int i = 0, attempts = 0; i < numDecals && attempts < 5; i++, attempts++)
             {
@@ -225,8 +230,8 @@ namespace TagJam18
         {
             ParentGame.GraphicsDevice.SetDepthStencilState(ParentGame.GraphicsDevice.DepthStencilStates.DepthRead);
             groundEffect.View = ParentGame.BasicEffect.View;
-            
-            groundEffect.World = Matrix.RotationX(MathF.Pi) * Matrix.Translation(Width / 2f, Height / 2, 0f);
+
+            groundEffect.World = Matrix.RotationX(MathF.Pi) * Matrix.Translation(GroundWidth / 2f + groundShrinkage, GroundWidth / 2 + groundShrinkage, 0f);
             groundEffect.Texture = concrete;
             groundMesh.Draw(groundEffect);
 
