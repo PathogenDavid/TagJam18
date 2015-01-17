@@ -8,5 +8,15 @@ namespace TagJam18
         {
             get { return (float)Math.PI; }
         }
+
+        public static float Sin(float x)
+        {
+            return Sin((double)x);
+        }
+
+        public static float Sin(double x)
+        {
+            return (float)Math.Sin(x);
+        }
     }
 }

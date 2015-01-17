@@ -4,14 +4,17 @@ using System;
 using System.Diagnostics;
 using SharpDX;
 using SharpDX.Toolkit;
-using SharpDX.Toolkit.Graphics;
 using SharpDX.Toolkit.Input;
 using SharpDX.Windows;
 using System.Collections.Generic;
 using System.IO;
+using SharpDX.Direct3D11;
+using DxSamplerState = SharpDX.Direct3D11.SamplerState;
 
 namespace TagJam18
 {
+    using SharpDX.Toolkit.Graphics;
+
     public class TagGame : Game
     {
         private readonly GraphicsDeviceManager graphics;
@@ -82,6 +85,11 @@ namespace TagJam18
             };
             BasicEffect.EnableDefaultLighting();
 
+            SamplerStateDescription samplerStateDescription = ((DxSamplerState)BasicEffect.Sampler).Description;
+            samplerStateDescription.Filter = Filter.Anisotropic;
+            samplerStateDescription.MaximumAnisotropy = 16;
+            BasicEffect.Sampler = SamplerState.New(GraphicsDevice, new DxSamplerState(GraphicsDevice, samplerStateDescription));
+
             level = new Level(this, Path.Combine(Content.RootDirectory, "Level1.tmx"));
 
             BasicEffect.View = Matrix.LookAtRH(new Vector3(level.Width / 2, level.Height / 2, -30f), new Vector3(level.Width / 2, level.Height / 2, 0f), -Vector3.UnitY);
@@ -110,6 +118,27 @@ namespace TagJam18
         public void RemoveEntity(Entity entity)
         {
             entities.Remove(entity);
+        }
+
+        public IEnumerable<Entity> GetEntities()
+        {
+            foreach (Entity entity in entities)
+            {
+                yield return entity;
+            }
+        }
+
+        public IEnumerable<T> GetEntities<T>()
+            where T : class
+        {
+            foreach (Entity entity in entities)
+            {
+                T ret = entity as T;
+                if (ret != null)
+                {
+                    yield return ret;
+                }
+            }
         }
 
         public void SortEntityRenderOrder()

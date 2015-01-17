@@ -3,7 +3,7 @@ using SharpDX;
 using SharpDX.Toolkit;
 using SharpDX.Toolkit.Graphics;
 
-namespace TagJam18
+namespace TagJam18.Entities
 {
     class Beer : Entity
     {
@@ -12,10 +12,10 @@ namespace TagJam18
         private const string meshId = "Beer/Mesh";
 
         [TilesetConstructor(2)]
-        public Beer(TagGame parentGame, float x, float y)
+        public Beer(TagGame parentGame, int x, int y)
             : base(parentGame)
         {
-            this.Position = new Vector3(x + 0.5f, y + 0.5f, -0.5f);
+            this.Position = new Vector3((float)x, (float)y, -0.5f);
             mesh = ParentGame.Resources.Get<GeometricPrimitive>(meshId, () => GeometricPrimitive.Teapot.New(ParentGame.GraphicsDevice));
         }
 

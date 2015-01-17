@@ -1,4 +1,8 @@
-﻿using System;
+﻿#if DEBUG
+#define DEBUG_ALIGNMENTS
+#endif
+
+using System;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,6 +12,7 @@ using SharpDX;
 using SharpDX.Toolkit;
 using SharpDX.Direct3D11;
 using DxSamplerState = SharpDX.Direct3D11.SamplerState;
+using TagJam18.Entities;
 
 namespace TagJam18
 {
@@ -20,6 +25,8 @@ namespace TagJam18
 
         public float Width { get; private set; }
         public float Height { get; private set; }
+        public int TileWidth { get; private set; }
+        public int TileHeight { get; private set; }
 
         private Texture2D concrete;
         private List<Texture2D> concreteDecals = new List<Texture2D>();
@@ -33,11 +40,17 @@ namespace TagJam18
         private const string groundEffectSamplerStateId = "Level/GroundEffectSamplerState";
         private GeometricPrimitive decalMesh;
         private const string decalMeshId = "Level/DecalMesh";
+#if DEBUG_ALIGNMENTS
+        private const float groundTextureSize = 1f;
+#else
         private const float groundTextureSize = 7f;
+#endif
         private const int minNumGroundDecals = 2;
-        private const float groundShrinkage = 0.5f; // Shrink to end at the center of outer walls
+        private const float groundShrinkage = 1f; // Shrink to end at the center of outer walls
         private float GroundWidth;
         private float GroundHeight;
+
+        private Entity[,] staticTileEntities;
 
         private class GroundDecal
         {
@@ -93,10 +106,11 @@ namespace TagJam18
                 xmlDocument.Load(f);
                 XmlNodeSimple xml = xmlDocument;
 
-                int w = Convert.ToInt32(xml["//map/@width"].Value);
-                int h = Convert.ToInt32(xml["//map/@height"].Value);
-                Width = (float)w;
-                Height = (float)h;
+                TileWidth = Convert.ToInt32(xml["//map/@width"].Value);
+                TileHeight = Convert.ToInt32(xml["//map/@height"].Value);
+                Width = (float)TileWidth;
+                Height = (float)TileHeight;
+                staticTileEntities = new Entity[TileWidth, TileHeight];
 
                 // Parse tile layers
                 XmlNodeList layers = xml.SelectNodes("//map/layer");
@@ -104,7 +118,7 @@ namespace TagJam18
                 { throw new ArgumentException("The given level file is invalid, it has the incorrect number of tile layers.", "file"); }
 
                 XmlNodeSimple layer = layers[0];
-                if (Convert.ToInt32(layer["@width"].Value) != w || Convert.ToInt32(layer["@height"].Value) != h)
+                if (Convert.ToInt32(layer["@width"].Value) != TileWidth || Convert.ToInt32(layer["@height"].Value) != TileHeight)
                 { throw new ArgumentException("The given level file is invalid, it contains tile layers that don't match the map dimensions.", "file"); }
 
                 if (layer["data/@encoding"].Value != "csv")
@@ -113,6 +127,12 @@ namespace TagJam18
                 ProcessCsv(layer["data/text()"].Value);
 
                 //TODO: Parse object layers
+            }
+
+            // Go over the entire level and compute adjacency information
+            foreach (INeedsAdjacencyInformation entity in ParentGame.GetEntities<INeedsAdjacencyInformation>())
+            {
+                entity.ComputeAdjacency(this);
             }
 
             // Load resources for rendering ground
@@ -210,12 +230,12 @@ namespace TagJam18
                     int id = Convert.ToInt32(token);
                     if (id == 0) { continue; }
 
-                    MakeEntity(id, (float)x, (float)y);
+                    MakeEntity(id, x, y);
                 }
             }
         }
 
-        private void MakeEntity(int id, float x, float y)
+        private void MakeEntity(int id, int x, int y)
         {
             if (!entityConstructors.ContainsKey(id))
             {
@@ -223,7 +243,28 @@ namespace TagJam18
                 return;
             }
 
-            entityConstructors[id].Invoke(ParentGame, x, y);
+            Entity newEntity = (Entity)entityConstructors[id].Invoke(ParentGame, x, y);
+
+            if (newEntity.GetType().GetCustomAttribute<StaticTileEntityAttribute>() != null)
+            {
+                Debug.Assert(staticTileEntities[x, y] == null);
+                staticTileEntities[x, y] = newEntity;
+            }
+        }
+
+        public Entity GetStaticEntityAt(int x, int y)
+        {
+            if (x < 0 || y < 0 || x >= TileWidth || y >= TileHeight)
+            { return null; }
+
+            return staticTileEntities[x, y];
+        }
+
+        public Entity SetStaticEntityAt(Entity newEntity, int x, int y)
+        {
+            Entity oldEntity = GetStaticEntityAt(x, y);
+            staticTileEntities[x, y] = newEntity;
+            return oldEntity;
         }
 
         public override void Render(GameTime gameTime)
@@ -231,6 +272,23 @@ namespace TagJam18
             ParentGame.GraphicsDevice.SetDepthStencilState(ParentGame.GraphicsDevice.DepthStencilStates.DepthRead);
             groundEffect.View = ParentGame.BasicEffect.View;
 
+#if DEBUG_ALIGNMENTS
+            bool dark;
+            groundEffect.TextureEnabled = false;
+            for (int y = 0; y < TileHeight; y++)
+            {
+                dark = y % 2 == 0;
+
+                for (int x = 0; x < TileWidth; x++)
+                {
+                    groundEffect.World = Matrix.RotationX(MathF.Pi) * Matrix.Translation((float)x, (float)y, 0f);
+                    groundEffect.DiffuseColor = (Color4)(dark ? Color.DarkGray : Color.Gray);
+                    decalMesh.Draw(groundEffect);
+
+                    dark = !dark;
+                }
+            }
+#else
             groundEffect.World = Matrix.RotationX(MathF.Pi) * Matrix.Translation(GroundWidth / 2f + groundShrinkage, GroundWidth / 2 + groundShrinkage, 0f);
             groundEffect.Texture = concrete;
             groundMesh.Draw(groundEffect);
@@ -241,6 +299,7 @@ namespace TagJam18
                 groundEffect.Texture = concreteDecals[decal.DecalNumber];
                 decalMesh.Draw(groundEffect);
             }
+#endif
 
             ParentGame.GraphicsDevice.SetDepthStencilState(ParentGame.GraphicsDevice.DepthStencilStates.Default);
         }

@@ -3,7 +3,7 @@ using SharpDX;
 using SharpDX.Toolkit;
 using SharpDX.Toolkit.Graphics;
 
-namespace TagJam18
+namespace TagJam18.Entities
 {
     class Player : Entity
     {
@@ -12,9 +12,9 @@ namespace TagJam18
         private const string meshId = "Player/Mesh";
         
         [TilesetConstructor(5)]
-        public Player(TagGame parentGame, float x, float y) : base(parentGame)
+        public Player(TagGame parentGame, int x, int y) : base(parentGame)
         {
-            this.Position = new Vector3(x + 0.5f, y + 0.5f, -0.5f);
+            this.Position = new Vector3((float)x, (float)y, -0.5f);
             mesh = ParentGame.Resources.Get<GeometricPrimitive>(meshId, () => GeometricPrimitive.Cylinder.New(ParentGame.GraphicsDevice));
         }
 
