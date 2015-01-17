@@ -1,4 +1,6 @@
-﻿#define DEBUG_CULLED_OBJECTS
+﻿#if DEBUG
+#define DEBUG_CULLED_OBJECTS
+#endif
 
 using System;
 using System.Diagnostics;
@@ -92,7 +94,7 @@ namespace TagJam18
 
             level = new Level(this, Path.Combine(Content.RootDirectory, "Level1.tmx"));
 
-            BasicEffect.View = Matrix.LookAtRH(new Vector3(level.Width / 2, level.Height / 2, -30f), new Vector3(level.Width / 2, level.Height / 2, 0f), -Vector3.UnitY);
+            BasicEffect.View = Matrix.LookAtRH(new Vector3(level.Width / 2f, level.Height / 2f, -30f), new Vector3(level.Width / 2, level.Height / 2, 0f), -Vector3.UnitY);
 
             base.LoadContent();
         }

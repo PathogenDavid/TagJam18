@@ -74,16 +74,10 @@ namespace TagJam18.Entities
                 HorizontalDrawOffset += new Vector3(0.5f - Thickness / 2f, 0f, 0f);
 
                 if (!connectedLeft)
-                {
-                    HorizontalDrawScale += new Vector3(Thickness, 0f, 0f);
-                    HorizontalDrawOffset -= new Vector3(Thickness / 2f, 0f, 0f);
-                }
+                { HorizontalDrawOffset -= new Vector3(Thickness, 0f, 0f); }
             }
             else if (connectedLeft)
-            {
-                HorizontalDrawScale += new Vector3(Thickness, 0f, 0f);
-                HorizontalDrawOffset += new Vector3(Thickness / 2f, 0f, 0f);
-            }
+            { HorizontalDrawOffset += new Vector3(Thickness, 0f, 0f); }
 
             VerticalDrawEnabled = false;
             VerticalDrawOffset = baseOffset;
@@ -101,7 +95,12 @@ namespace TagJam18.Entities
                 VerticalDrawEnabled = true;
                 VerticalDrawScale += new Vector3(0.5f - Thickness / 2f, 0f, 0f);
                 VerticalDrawOffset += new Vector3(0f, 0.5f - Thickness / 2f, 0f);
+
+                if (!connectedTop)
+                { VerticalDrawOffset -= new Vector3(0f, Thickness, 0f); }
             }
+            else if (connectedTop)
+            { VerticalDrawOffset += new Vector3(0f, Thickness, 0f); }
         }
 
         private bool ConnectsWith(Entity entity)
@@ -126,10 +125,9 @@ namespace TagJam18.Entities
                 mesh.Draw(ParentGame.BasicEffect);
             }
 
-            //if (!HorizontalDrawEnabled && !VerticalDrawEnabled)
+            if (!HorizontalDrawEnabled && !VerticalDrawEnabled)
             {
                 ParentGame.BasicEffect.World = Matrix.Scaling(baseScaling) * Matrix.Translation(Position + baseOffset - Vector3.UnitZ);
-                ParentGame.BasicEffect.TextureEnabled = false;
                 mesh.Draw(ParentGame.BasicEffect);
             }
 
