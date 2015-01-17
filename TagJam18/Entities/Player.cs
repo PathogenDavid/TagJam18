@@ -6,7 +6,7 @@ using SharpDX.Toolkit.Graphics;
 
 namespace TagJam18.Entities
 {
-    class Player : Entity
+    public class Player : Entity
     {
         public Vector3 Position { get; private set; }
         private GeometricPrimitive mesh;
@@ -17,6 +17,7 @@ namespace TagJam18.Entities
         [TilesetConstructor(5)]
         public Player(TagGame parentGame, int x, int y) : base(parentGame)
         {
+            ParentGame.Camera.Player = this;
             this.Position = new Vector3((float)x, (float)y, -0.5f);
             mesh = ParentGame.Resources.Get<GeometricPrimitive>(meshId, () => GeometricPrimitive.Cylinder.New(ParentGame.GraphicsDevice));
         }

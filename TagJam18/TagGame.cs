@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using SharpDX.Direct3D11;
 using DxSamplerState = SharpDX.Direct3D11.SamplerState;
+using TagJam18.Entities;
 
 namespace TagJam18
 {
@@ -26,6 +27,8 @@ namespace TagJam18
         private Level level;
 
         public ResourcePool Resources { get; private set; }
+
+        public Camera Camera { get; private set; }
 
         public TagGame()
             : base()
@@ -79,6 +82,8 @@ namespace TagJam18
         {
             Resources = new ResourcePool();
 
+            Camera = new Camera(this);
+
             BasicEffect = new BasicEffect(GraphicsDevice)
             {
                 Projection = Matrix.PerspectiveFovRH(MathF.Pi / 4f, (float)GraphicsDevice.BackBuffer.Width / (float)GraphicsDevice.BackBuffer.Height, 0.1f, 100f),
@@ -93,8 +98,7 @@ namespace TagJam18
             BasicEffect.Sampler = SamplerState.New(GraphicsDevice, new DxSamplerState(GraphicsDevice, samplerStateDescription));
 
             level = new Level(this, Path.Combine(Content.RootDirectory, "Level1.tmx"));
-
-            BasicEffect.View = Matrix.LookAtRH(new Vector3(level.Width / 2f, level.Height / 2f, -30f), new Vector3(level.Width / 2, level.Height / 2, 0f), -Vector3.UnitY);
+            Camera.DefaultLookAt = new Vector3(level.Width / 2, level.Height / 2, 0f);
 
             base.LoadContent();
         }
@@ -150,6 +154,8 @@ namespace TagJam18
 
         protected override void Draw(GameTime gameTime)
         {
+            BasicEffect.View = Camera.ViewTransform;
+
 #if DEBUG_CULLED_OBJECTS
             GraphicsDevice.SetRasterizerState(gameTime.FrameCount % 2 == 0 ? GraphicsDevice.RasterizerStates.CullBack : GraphicsDevice.RasterizerStates.CullNone);
 #endif
