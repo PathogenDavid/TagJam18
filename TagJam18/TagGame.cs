@@ -162,11 +162,13 @@ namespace TagJam18
             base.Draw(gameTime);
         }
 
+        public KeyboardState Keyboard { get; private set; }
+
         protected override void Update(GameTime gameTime)
         {
-            KeyboardState keyboardState = keyboard.GetState();
+            Keyboard = keyboard.GetState();
 
-            if (keyboardState.IsKeyReleased(Keys.Escape))
+            if (Keyboard.IsKeyReleased(Keys.Escape))
             { Exit(); }
 
             foreach (Entity entity in entities)
