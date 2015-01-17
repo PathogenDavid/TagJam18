@@ -91,7 +91,18 @@
     </None>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ToolkitTexture Include="Content\concrete0.png" />
+    <ToolkitTexture Include="Content\concrete1.png" />
+    <ToolkitTexture Include="Content\concrete2.png" />
+    <ToolkitTexture Include="Content\concrete3.png" />
+    <ToolkitTexture Include="Content\concrete4.png" />
+    <ToolkitTexture Include="Content\concrete5.png" />
+    <ToolkitTexture Include="Content\concrete6.png" />
+    <ToolkitTexture Include="Content\concrete7.png" />
+    <ToolkitTexture Include="Content\concrete8.png" />
+    <ToolkitTexture Include="Content\concrete9.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\SharpDX.2.6.3\build\SharpDX.targets" Condition="Exists('..\packages\SharpDX.2.6.3\build\SharpDX.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

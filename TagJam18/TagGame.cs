@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define DEBUG_CULLED_OBJECTS
+
+using System;
 using System.Diagnostics;
 using SharpDX;
 using SharpDX.Toolkit;
@@ -66,29 +68,30 @@ namespace TagJam18
             base.Initialize();
         }
 
-        internal BasicEffect effect;
+        internal BasicEffect BasicEffect;
 
         protected override void LoadContent()
         {
             Resources = new ResourcePool();
 
-            level = new Level(this, Path.Combine(Content.RootDirectory, "Level1.tmx"));
-
-            effect = new BasicEffect(GraphicsDevice)
+            BasicEffect = new BasicEffect(GraphicsDevice)
             {
-                View = Matrix.LookAtRH(new Vector3(level.Width / 2, level.Height / 2, -30f), new Vector3(level.Width / 2, level.Height / 2, 0f), -Vector3.UnitY),
                 Projection = Matrix.PerspectiveFovRH(MathF.Pi / 4f, (float)GraphicsDevice.BackBuffer.Width / (float)GraphicsDevice.BackBuffer.Height, 0.1f, 100f),
                 World = Matrix.Identity,
                 PreferPerPixelLighting = true,
             };
-            effect.EnableDefaultLighting();
+            BasicEffect.EnableDefaultLighting();
+
+            level = new Level(this, Path.Combine(Content.RootDirectory, "Level1.tmx"));
+
+            BasicEffect.View = Matrix.LookAtRH(new Vector3(level.Width / 2, level.Height / 2, -30f), new Vector3(level.Width / 2, level.Height / 2, 0f), -Vector3.UnitY);
 
             base.LoadContent();
         }
 
         protected override void UnloadContent()
         {
-            effect.Dispose();
+            BasicEffect.Dispose();
 
             foreach (Entity entity in entities)
             { entity.Dispose(); }
@@ -101,6 +104,7 @@ namespace TagJam18
         public void AddEntity(Entity entity)
         {
             entities.Add(entity);
+            SortEntityRenderOrder();
         }
 
         public void RemoveEntity(Entity entity)
@@ -108,8 +112,17 @@ namespace TagJam18
             entities.Remove(entity);
         }
 
+        public void SortEntityRenderOrder()
+        {
+            entities.Sort((a, b) => a.RenderOrder.CompareTo(b.RenderOrder));
+        }
+
         protected override void Draw(GameTime gameTime)
         {
+#if DEBUG_CULLED_OBJECTS
+            GraphicsDevice.SetRasterizerState(gameTime.FrameCount % 2 == 0 ? GraphicsDevice.RasterizerStates.CullBack : GraphicsDevice.RasterizerStates.CullNone);
+#endif
+
             GraphicsDevice.Clear(Color.Black);
 
             foreach (Entity entity in entities)

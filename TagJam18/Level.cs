@@ -4,10 +4,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Xml;
 using System.IO;
+using SharpDX;
 using SharpDX.Toolkit;
+using SharpDX.Direct3D11;
+using DxSamplerState = SharpDX.Direct3D11.SamplerState;
 
 namespace TagJam18
 {
+    using SharpDX.Toolkit.Graphics;
+
     public class Level : Entity
     {
         private delegate Entity TilesetConstructorDelegate(TagGame parentGame, float x, float y);
@@ -15,6 +20,42 @@ namespace TagJam18
 
         public float Width { get; private set; }
         public float Height { get; private set; }
+
+        private Texture2D concrete;
+        private List<Texture2D> concreteDecals = new List<Texture2D>();
+        private const string concreteIdFormat = "Level/Concrete{0}";
+        private const int concreteTextureCount = 10;
+
+        private GeometricPrimitive groundMesh;
+        private BasicEffect groundEffect;
+        private const string groundEffectId = "Level/GroundEffect";
+        private DxSamplerState groundEffectSamplerState;
+        private const string groundEffectSamplerStateId = "Level/GroundEffectSamplerState";
+        private GeometricPrimitive decalMesh;
+        private const string decalMeshId = "Level/DecalMesh";
+        private const float groundTextureSize = 10f;
+
+        private class GroundDecal
+        {
+            public readonly int DecalNumber;
+            public readonly Vector3 Position;
+            public readonly int TileX;
+            public readonly int TileY;
+
+            public GroundDecal(int decalNumber, int tileX, int tileY)
+            {
+                this.DecalNumber = decalNumber;
+                this.Position = new Vector3(
+                    (float)tileX * groundTextureSize + groundTextureSize / 2f,
+                    (float)tileY * groundTextureSize + groundTextureSize / 2f,
+                    0f
+                );
+
+                this.TileX = tileX;
+                this.TileY = tileY;
+            }
+        }
+        private List<GroundDecal> decals = new List<GroundDecal>();
 
         static Level()
         {
@@ -37,12 +78,11 @@ namespace TagJam18
             }
         }
 
-        private TagGame parentGame;
-
         public Level(TagGame parentGame, string file) : base(parentGame)
         {
-            this.parentGame = parentGame;
+            RenderOrder = Int32.MinValue;
 
+            // Load the level
             using (StreamReader f = new StreamReader(file))
             {
                 XmlDocument xmlDocument = new XmlDocument();
@@ -70,6 +110,81 @@ namespace TagJam18
 
                 //TODO: Parse object layers
             }
+
+            // Load resources for rendering ground
+            concrete = LoadConcreteTexture(0);
+
+            for (int i = 1; i < concreteTextureCount; i++)
+            {
+                concreteDecals.Add(LoadConcreteTexture(i));
+            }
+
+            groundMesh = GeometricPrimitive.Plane.New(ParentGame.GraphicsDevice, Width, Height, 1, new Vector2(Width / groundTextureSize, Height / groundTextureSize));
+            decalMesh = ParentGame.Resources.Get<GeometricPrimitive>(decalMeshId, () => GeometricPrimitive.Plane.New(ParentGame.GraphicsDevice, groundTextureSize, groundTextureSize));
+
+            SamplerStateDescription samplerStateDescription = ((DxSamplerState)ParentGame.BasicEffect.Sampler).Description;
+            samplerStateDescription.AddressU = TextureAddressMode.Wrap;
+            samplerStateDescription.AddressV = TextureAddressMode.Wrap;
+
+            groundEffectSamplerState = ParentGame.Resources.Get<DxSamplerState>(groundEffectSamplerStateId, () => new SharpDX.Direct3D11.SamplerState(ParentGame.GraphicsDevice, samplerStateDescription));
+
+            groundEffect = ParentGame.Resources.Get<BasicEffect>(groundEffectId, () => new BasicEffect(ParentGame.GraphicsDevice)
+            {
+                Projection = ParentGame.BasicEffect.Projection,
+                PreferPerPixelLighting = true,
+                TextureEnabled = true,
+                Sampler = SamplerState.New(ParentGame.GraphicsDevice, groundEffectSamplerState)
+            });
+            groundEffect.EnableDefaultLighting();
+
+            // Make decals
+            int maxDecalX = (int)(Width / groundTextureSize);
+            int maxDecalY = (int)(Height / groundTextureSize);
+            const int minNumDecals = 2;
+            int maxNumDecals = maxDecalX * maxDecalY;
+            Random r = new Random();
+            int numDecals;
+            if (minNumDecals < maxNumDecals)
+            { numDecals = r.Next(minNumDecals, maxNumDecals); }
+            else
+            { numDecals = maxNumDecals = minNumDecals; }
+
+            for (int i = 0, attempts = 0; i < numDecals && attempts < 5; i++, attempts++)
+            {
+                int x = r.Next(maxDecalX);
+                int y = r.Next(maxDecalY);
+
+                if (!IsDecalSpotFree(x, y))
+                {
+                    i--;
+                    continue;
+                }
+
+                decals.Add(new GroundDecal(r.Next(0, concreteDecals.Count), x, y));
+            }
+        }
+
+        private bool IsDecalSpotFree(int x, int y)
+        {
+            foreach (GroundDecal decal in decals)
+            {
+                if (decal.TileX == x && decal.TileY == y)
+                { return false; }
+            }
+            return true;
+        }
+
+        private Texture2D LoadConcreteTexture(int num)
+        {
+            string id = String.Format(concreteIdFormat, num);
+            string assetName = String.Format("concrete{0}", num);
+            return ParentGame.Resources.Get<Texture2D>(id, () => ParentGame.Content.Load<Texture2D>(assetName));
+        }
+
+        private void DropConcreteTexture(int num)
+        {
+            string id = String.Format(concreteIdFormat, num);
+            ParentGame.Resources.Drop(id, num == 0 ? concrete : concreteDecals[num - 1]);
         }
 
         private void ProcessCsv(string csv)
@@ -103,12 +218,43 @@ namespace TagJam18
                 return;
             }
 
-            entityConstructors[id].Invoke(parentGame, x, y);
+            entityConstructors[id].Invoke(ParentGame, x, y);
         }
 
         public override void Render(GameTime gameTime)
         {
+            ParentGame.GraphicsDevice.SetDepthStencilState(ParentGame.GraphicsDevice.DepthStencilStates.DepthRead);
+            groundEffect.View = ParentGame.BasicEffect.View;
             
+            groundEffect.World = Matrix.RotationX(MathF.Pi) * Matrix.Translation(Width / 2f, Height / 2, 0f);
+            groundEffect.Texture = concrete;
+            groundMesh.Draw(groundEffect);
+
+            foreach (GroundDecal decal in decals)
+            {
+                groundEffect.World = Matrix.RotationX(MathF.Pi) * Matrix.Translation(decal.Position);
+                groundEffect.Texture = concreteDecals[decal.DecalNumber];
+                decalMesh.Draw(groundEffect);
+            }
+
+            ParentGame.GraphicsDevice.SetDepthStencilState(ParentGame.GraphicsDevice.DepthStencilStates.Default);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                for (int i = 0; i < concreteTextureCount; i++)
+                {
+                    DropConcreteTexture(i);
+                }
+
+                groundMesh.Dispose(); // Not cached in the resource pool
+                ParentGame.Resources.Drop(decalMeshId, decalMesh);
+
+                ParentGame.Resources.Drop(groundEffectId, groundEffect);
+                ParentGame.Resources.Drop(groundEffectSamplerStateId, groundEffectSamplerState);
+            }
         }
     }
 }

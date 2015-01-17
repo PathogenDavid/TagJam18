@@ -8,6 +8,19 @@ namespace TagJam18
     {
         protected TagGame ParentGame { get; private set; }
 
+        private int _RenderOrder;
+        public int RenderOrder
+        {
+            get { return _RenderOrder; }
+            protected set
+            {
+                if (_RenderOrder == value)
+                { return; }
+                _RenderOrder = value;
+                ParentGame.SortEntityRenderOrder();
+            }
+        }
+
         public Entity(TagGame parentGame)
         {
             ParentGame = parentGame;

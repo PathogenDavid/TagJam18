@@ -15,14 +15,14 @@ namespace TagJam18
         public Wall(TagGame parentGame, float x, float y)
             : base(parentGame)
         {
-            this.Position = new Vector3(x, y, 0f);
+            this.Position = new Vector3(x + 0.5f, y + 0.5f, -0.5f);
             mesh = ParentGame.Resources.Get<GeometricPrimitive>(meshId, () => GeometricPrimitive.Cube.New(ParentGame.GraphicsDevice));
         }
 
         public override void Render(GameTime gameTime)
         {
-            ParentGame.effect.World = Matrix.Translation(Position);
-            mesh.Draw(ParentGame.effect);
+            ParentGame.BasicEffect.World = Matrix.Translation(Position);
+            mesh.Draw(ParentGame.BasicEffect);
         }
 
         protected override void Dispose(bool disposing)
