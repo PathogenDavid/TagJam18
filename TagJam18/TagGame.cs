@@ -5,6 +5,8 @@ using SharpDX.Toolkit;
 using SharpDX.Toolkit.Graphics;
 using SharpDX.Toolkit.Input;
 using SharpDX.Windows;
+using System.Collections.Generic;
+using System.IO;
 
 namespace TagJam18
 {
@@ -13,6 +15,8 @@ namespace TagJam18
         private readonly GraphicsDeviceManager graphics;
         private readonly KeyboardManager keyboard;
         private readonly MouseManager mouse;
+        private List<Entity> entities = new List<Entity>();
+        private Level level;
 
         public TagGame()
             : base()
@@ -60,39 +64,64 @@ namespace TagJam18
             base.Initialize();
         }
 
-        private BasicEffect effect;
-        private GeometricPrimitive cube;
+        internal BasicEffect effect;
+        internal GeometricPrimitive cube;
+        internal GeometricPrimitive cylinder;
+        internal GeometricPrimitive teapot;
+        internal GeometricPrimitive torus;
 
         protected override void LoadContent()
         {
+            level = new Level(this, Path.Combine(Content.RootDirectory, "Level1.tmx"));
+
             effect = new BasicEffect(GraphicsDevice)
             {
-                View = Matrix.LookAtRH(new Vector3(0f, 0f, 15f), new Vector3(0f), -Vector3.UnitY),
-                Projection = Matrix.PerspectiveFovRH((float)Math.PI / 4f, (float)GraphicsDevice.BackBuffer.Width / (float)GraphicsDevice.BackBuffer.Height, 0.1f, 100f),
+                View = Matrix.LookAtRH(new Vector3(level.Width / 2, level.Height / 2, -30f), new Vector3(level.Width / 2, level.Height / 2, 0f), -Vector3.UnitY),
+                Projection = Matrix.PerspectiveFovRH(MathF.Pi / 4f, (float)GraphicsDevice.BackBuffer.Width / (float)GraphicsDevice.BackBuffer.Height, 0.1f, 100f),
                 World = Matrix.Identity,
                 PreferPerPixelLighting = true,
             };
             effect.EnableDefaultLighting();
 
             cube = GeometricPrimitive.Cube.New(GraphicsDevice);
+            cylinder = GeometricPrimitive.Cylinder.New(GraphicsDevice);
+            teapot = GeometricPrimitive.Teapot.New(GraphicsDevice);
+            torus = GeometricPrimitive.Torus.New(GraphicsDevice);
 
             base.LoadContent();
         }
 
         protected override void UnloadContent()
         {
+            torus.Dispose();
+            teapot.Dispose();
+            cylinder.Dispose();
             cube.Dispose();
             effect.Dispose();
 
             base.UnloadContent();
         }
 
+        public void AddEntity(Entity entity)
+        {
+            entities.Add(entity);
+        }
+
+        public void RemoveEntity(Entity entity)
+        {
+            entities.Remove(entity);
+        }
+
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.Black);
 
-            effect.World = Matrix.Translation(0f, -1f, 0f);
-            cube.Draw(effect);
+            //effect.World = Matrix.Translation(0f, -1f, 0f);
+            //cube.Draw(effect);
+            foreach (Entity entity in entities)
+            {
+                entity.Render(gameTime);
+            }
             
             base.Draw(gameTime);
         }
@@ -104,6 +133,11 @@ namespace TagJam18
             if (keyboardState.IsKeyReleased(Keys.Escape))
             {
                 Exit();
+            }
+
+            foreach (Entity entity in entities)
+            {
+                entity.Update(gameTime);
             }
             
             base.Update(gameTime);

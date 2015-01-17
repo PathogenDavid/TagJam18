@@ -69,9 +69,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Beer.cs" />
+    <Compile Include="ConstructorInfoEx.cs" />
+    <Compile Include="Door.cs" />
+    <Compile Include="Entity.cs" />
+    <Compile Include="Level.cs" />
+    <Compile Include="MathF.cs" />
+    <Compile Include="Player.cs" />
+    <Compile Include="ResourcePool.cs" />
     <Compile Include="TagGame.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TilesetConstructorAttribute.cs" />
+    <Compile Include="Wall.cs" />
+    <Compile Include="XmlNodeSimple.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
