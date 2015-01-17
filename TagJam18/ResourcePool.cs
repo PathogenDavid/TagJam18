@@ -8,31 +8,43 @@ namespace TagJam18
     {
         class PoolValue
         {
-            WeakReference Reference { get; private set; }
-            int ReferenceCount { get; private set; }
-            int RessurectionCount { get; private set; }
+            private WeakReference weakReference;
+            public int ReferenceCount { get; private set; }
+            public int RessurectionCount { get; private set; }
+            public Type ObjectType { get; private set; }
+            bool wasDisposed = false;
 
-            PoolValue(object obj)
+            public object Reference { get { return wasDisposed ? null : weakReference.Target; } }
+
+            public PoolValue(object obj)
             {
-                Reference = new WeakReference(obj);
+                weakReference = new WeakReference(obj);
                 ReferenceCount = 1;
                 RessurectionCount = 0;
+                ObjectType = obj.GetType();
             }
 
-            void Ressurect(object newObj)
+            public void Ressurect(object newObj)
             {
-                Debug.Assert(!Reference.IsAlive);
-                Reference.Target = newObj;
+                if (newObj.GetType() != ObjectType)
+                { throw new InvalidOperationException("Attempted to ressurect object with a different type!"); }
+
+                if (weakReference.IsAlive && !wasDisposed)
+                { throw new InvalidOperationException("Attempted to ressurect an object that wasn't dead!"); }
+
+                wasDisposed = false;
+                weakReference.Target = newObj;
                 ReferenceCount = 1;
                 RessurectionCount++;
             }
 
-            void GrabReference()
+            public void GrabReference()
             {
+                Debug.Assert(!wasDisposed); // This should never happen to a disposed object.
                 ReferenceCount++;
             }
 
-            void DropReference()
+            public void DropReference()
             {
                 if (ReferenceCount == 0)
                 {
@@ -40,34 +52,55 @@ namespace TagJam18
                 }
 
                 ReferenceCount--;
+
+                if (ReferenceCount == 0)
+                {
+                    Debug.Assert(!wasDisposed); // This should never happen to a disposed object.
+                    IDisposable disposable = weakReference.Target as IDisposable;
+                    if (disposable != null)
+                    { disposable.Dispose(); }
+                    wasDisposed = true;
+                }
             }
         }
 
-        private Dictionary<string, WeakReference> pool = new Dictionary<string, WeakReference>();
-        private object poolMutex;
+        private Dictionary<string, PoolValue> pool = new Dictionary<string, PoolValue>();
+        private object poolMutex = new Object();
 
         public delegate T ObjectCreator<T>();
 
         public T Get<T>(string id, ObjectCreator<T> creator)
             where T : class
         {
-            WeakReference retReference;
+            PoolValue poolValue;
             lock (poolMutex)
             {
-                if (pool.TryGetValue(id, out retReference))
+                if (pool.TryGetValue(id, out poolValue))
                 {
-                    object retObject = retReference.Target;
+                    object retObject = poolValue.Reference;
                     T ret = retObject as T;
 
                     if (retObject == null) // Target was lost to garbage collection
                     {
+                        if (poolValue.ObjectType != typeof(T))
+                        { throw new ArgumentException(String.Format("{0} was previously a {1}, but you tried to get a {2}", id, poolValue.ObjectType, typeof(T)), "id"); }
+
                         Debug.Print("{1}:'{0}' was lost to garbage collection, recreating...", id, typeof(T));
+
+                        if (poolValue.ReferenceCount > 0)
+                        { Debug.Print("REFERENCE COUNT LEAK: ResourcePool.Get ressurecting of {0} of type {1}, with a non-zero reference count of {2}", id, typeof(T), poolValue.ReferenceCount); }
+
                         ret = creator();
-                        retReference.Target = ret;
+
+                        poolValue.Ressurect(ret);
                     }
                     else if (ret == null) // ret being null means the id belongs to another type
                     {
-                        throw new ArgumentException(String.Format("The given ID is already being used for a {0}, you tried to get a {1}.", retReference.GetType(), typeof(T)), "id");
+                        throw new ArgumentException(String.Format("{0} is already being used for a {1}, you tried to get a {2}.", id, retObject.GetType(), typeof(T)), "id");
+                    }
+                    else
+                    {
+                        poolValue.GrabReference();
                     }
 
                     return ret;
@@ -75,8 +108,29 @@ namespace TagJam18
                 else // No object by this name exists in the pool
                 {
                     T ret = creator();
-                    pool.Add(id, new WeakReference(ret));
+                    pool.Add(id, new PoolValue(ret));
                     return ret;
+                }
+            }
+        }
+
+        public void Drop<T>(string id, T obj)
+        {
+            PoolValue poolValue;
+            lock (poolMutex)
+            {
+                if (pool.TryGetValue(id, out poolValue))
+                {
+                    if (poolValue.Reference != (object)obj)
+                    {
+                        throw new InvalidOperationException("The given id, object pair doesn't match what is in the pool!");
+                    }
+
+                    poolValue.DropReference();
+                }
+                else
+                {
+                    throw new InvalidOperationException("The given id doesn't exist in the pool!");
                 }
             }
         }
@@ -94,14 +148,19 @@ namespace TagJam18
 
             if (disposing)
             {
-                foreach (WeakReference weakReference in pool.Values)
+                foreach (KeyValuePair<string, PoolValue> item in pool)
                 {
-                    object obj = weakReference.Target;
+                    object obj = item.Value.Reference;
                     IDisposable disposable = obj as IDisposable;
 
                     if (disposable != null)
                     {
+                        Debug.Print("RESOURCE LEAK: Disposing of {0} of type {1}! Reference count is {2}.", item.Key, obj.GetType(), item.Value.ReferenceCount);
                         disposable.Dispose();
+                    }
+                    else if (obj == null && item.Value.ReferenceCount > 0)
+                    {
+                        Debug.Print("REFERENCE COUNT LEAK: Found {0} of type {1} was garbage collected, but the reference count is still {2}.", item.Key, item.Value.ObjectType, item.Value.ReferenceCount);
                     }
                 }
             }

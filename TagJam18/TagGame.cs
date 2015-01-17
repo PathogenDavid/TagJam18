@@ -18,6 +18,8 @@ namespace TagJam18
         private List<Entity> entities = new List<Entity>();
         private Level level;
 
+        public ResourcePool Resources { get; private set; }
+
         public TagGame()
             : base()
         {
@@ -65,13 +67,11 @@ namespace TagJam18
         }
 
         internal BasicEffect effect;
-        internal GeometricPrimitive cube;
-        internal GeometricPrimitive cylinder;
-        internal GeometricPrimitive teapot;
-        internal GeometricPrimitive torus;
 
         protected override void LoadContent()
         {
+            Resources = new ResourcePool();
+
             level = new Level(this, Path.Combine(Content.RootDirectory, "Level1.tmx"));
 
             effect = new BasicEffect(GraphicsDevice)
@@ -83,21 +83,17 @@ namespace TagJam18
             };
             effect.EnableDefaultLighting();
 
-            cube = GeometricPrimitive.Cube.New(GraphicsDevice);
-            cylinder = GeometricPrimitive.Cylinder.New(GraphicsDevice);
-            teapot = GeometricPrimitive.Teapot.New(GraphicsDevice);
-            torus = GeometricPrimitive.Torus.New(GraphicsDevice);
-
             base.LoadContent();
         }
 
         protected override void UnloadContent()
         {
-            torus.Dispose();
-            teapot.Dispose();
-            cylinder.Dispose();
-            cube.Dispose();
             effect.Dispose();
+
+            foreach (Entity entity in entities)
+            { entity.Dispose(); }
+
+            Resources.Dispose();
 
             base.UnloadContent();
         }
@@ -116,12 +112,8 @@ namespace TagJam18
         {
             GraphicsDevice.Clear(Color.Black);
 
-            //effect.World = Matrix.Translation(0f, -1f, 0f);
-            //cube.Draw(effect);
             foreach (Entity entity in entities)
-            {
-                entity.Render(gameTime);
-            }
+            { entity.Render(gameTime); }
             
             base.Draw(gameTime);
         }
@@ -131,14 +123,10 @@ namespace TagJam18
             KeyboardState keyboardState = keyboard.GetState();
 
             if (keyboardState.IsKeyReleased(Keys.Escape))
-            {
-                Exit();
-            }
+            { Exit(); }
 
             foreach (Entity entity in entities)
-            {
-                entity.Update(gameTime);
-            }
+            { entity.Update(gameTime); }
             
             base.Update(gameTime);
         }
