@@ -12,13 +12,22 @@ namespace TagJam18.Entities
         private const string meshId = "Player/Mesh";
         private const float walkSpeed = 1.5f;
         private const float runSpeed = 2.5f;
+
+        public int BeersDranken { get; private set; }
         
         [TilesetConstructor(5)]
         public Player(TagGame parentGame, int x, int y) : base(parentGame)
         {
+            RenderOrder = -1; // Also affects update order. Will ensure player position is fresh for all entities.
             this.Position = new Vector3((float)x, (float)y, -0.5f);
             this.CollisionSize = 1f;
             mesh = ParentGame.Resources.Get<GeometricPrimitive>(meshId, () => GeometricPrimitive.Cylinder.New(ParentGame.GraphicsDevice));
+            BeersDranken = 0;
+        }
+
+        public void DrinkBeer()
+        {
+            BeersDranken++;
         }
 
         public override void Render(GameTime gameTime)

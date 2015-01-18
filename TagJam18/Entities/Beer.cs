@@ -12,6 +12,9 @@ namespace TagJam18.Entities
         private Texture2D texture;
         private const string textureId = "Beer/Texture";
         private Matrix baseTransform;
+        private float size;
+        private bool isDisappearing;
+        private float disappearSpeed = 1f;
 
         [TilesetConstructor(2)]
         public Beer(TagGame parentGame, int x, int y)
@@ -30,18 +33,19 @@ namespace TagJam18.Entities
             const float positionVariance = 0.3f;
             float xOff = r.NextFloat(-positionVariance, positionVariance);
             float yOff = r.NextFloat(-positionVariance, positionVariance);
-
-            const float scalingVariance = 0.05f;
-            float scaling = 0.55f + r.NextFloat(-scalingVariance, scalingVariance);
+            Position += new Vector3(xOff, yOff, 0f);
 
             // Flip the model over * orient bottle * move bottom of bottle to proper bottom * make bottle smaller * apply random position offset
-            baseTransform = Matrix.RotationX(MathF.Pi) * Matrix.RotationZ(rotation) * Matrix.Translation(0f, 0f, -1f) * Matrix.Scaling(scaling) * Matrix.Translation(xOff, yOff, 0f);
-            CollisionSize = scaling;
+            baseTransform = Matrix.RotationX(MathF.Pi) * Matrix.RotationZ(rotation) * Matrix.Translation(0f, 0f, -1f);
+
+            const float sizeVariance = 0.05f;
+            size = 0.55f + r.NextFloat(-sizeVariance, sizeVariance);
+            CollisionSize = size;
         }
 
         public override void Render(GameTime gameTime)
         {
-            ParentGame.BasicEffect.World = baseTransform * Matrix.Translation(Position);
+            ParentGame.BasicEffect.World = baseTransform * Matrix.Scaling(size) * Matrix.Translation(Position);
             ParentGame.BasicEffect.Texture = texture;
             ParentGame.BasicEffect.TextureEnabled = true;
             float oldSpecularPower = ParentGame.BasicEffect.SpecularPower;
@@ -56,9 +60,18 @@ namespace TagJam18.Entities
 
         public override void Update(GameTime gameTime)
         {
-            if (CollidesWith(ParentGame.Player))
+            if (!isDisappearing && CollidesWith(ParentGame.Player))
             {
-                this.Remove();
+                isDisappearing = true;
+                ParentGame.Player.DrinkBeer();
+            }
+
+            if (isDisappearing)
+            {
+                size -= disappearSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+                if (size < 0f)
+                { this.Remove(); }
             }
         }
 
