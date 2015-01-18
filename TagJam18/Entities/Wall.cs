@@ -8,7 +8,6 @@ namespace TagJam18.Entities
     [StaticTileEntity]
     class Wall : Entity, INeedsAdjacencyInformation
     {
-        public Vector3 Position { get; private set; }
         private int TileX;
         private int TileY;
 

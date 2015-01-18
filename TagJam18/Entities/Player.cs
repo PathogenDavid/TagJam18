@@ -8,7 +8,6 @@ namespace TagJam18.Entities
 {
     public class Player : Entity
     {
-        public Vector3 Position { get; private set; }
         private GeometricPrimitive mesh;
         private const string meshId = "Player/Mesh";
         private const float walkSpeed = 1.5f;
@@ -17,8 +16,8 @@ namespace TagJam18.Entities
         [TilesetConstructor(5)]
         public Player(TagGame parentGame, int x, int y) : base(parentGame)
         {
-            ParentGame.Camera.Player = this;
             this.Position = new Vector3((float)x, (float)y, -0.5f);
+            this.CollisionSize = 1f;
             mesh = ParentGame.Resources.Get<GeometricPrimitive>(meshId, () => GeometricPrimitive.Cylinder.New(ParentGame.GraphicsDevice));
         }
 

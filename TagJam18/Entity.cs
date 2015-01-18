@@ -21,6 +21,9 @@ namespace TagJam18
             }
         }
 
+        public Vector3 Position { get; protected set; }
+        public float CollisionSize { get; protected set; }
+
         public Entity(TagGame parentGame)
         {
             ParentGame = parentGame;
@@ -29,6 +32,16 @@ namespace TagJam18
         
         public virtual void Render(GameTime gameTime) { }
         public virtual void Update(GameTime gameTime) { }
+
+        public bool CollidesWith(Entity other)
+        {
+            const float tunnelingNeeded = 0.05f;
+
+            if (other == null || this.CollisionSize <= float.Epsilon || other.CollisionSize <= float.Epsilon)
+            { return false; }
+
+            return (this.Position - other.Position).Length() < (this.CollisionSize + other.CollisionSize - tunnelingNeeded);
+        }
 
         public virtual void Remove()
         {

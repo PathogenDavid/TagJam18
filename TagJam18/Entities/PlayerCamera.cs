@@ -11,7 +11,10 @@ namespace TagJam18.Entities
         private const float prefferredHeight = 30f;
 
         public Matrix ViewTransform { get; private set; }
-        public Player Player { get; set; }
+        private Player Player
+        {
+            get { return ParentGame.Player; }
+        }
         public Vector3 DefaultLookAt { get; set; }
 
         public PlayerCamera(TagGame parentGame)

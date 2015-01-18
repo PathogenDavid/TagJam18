@@ -7,7 +7,6 @@ namespace TagJam18.Entities
 {
     class Beer : Entity
     {
-        public Vector3 Position { get; private set; }
         private Model mesh;
         private const string meshId = "Beer/Mesh";
         private Texture2D texture;
@@ -37,6 +36,7 @@ namespace TagJam18.Entities
 
             // Flip the model over * orient bottle * move bottom of bottle to proper bottom * make bottle smaller * apply random position offset
             baseTransform = Matrix.RotationX(MathF.Pi) * Matrix.RotationZ(rotation) * Matrix.Translation(0f, 0f, -1f) * Matrix.Scaling(scaling) * Matrix.Translation(xOff, yOff, 0f);
+            CollisionSize = scaling;
         }
 
         public override void Render(GameTime gameTime)
@@ -52,6 +52,14 @@ namespace TagJam18.Entities
             ParentGame.BasicEffect.SpecularPower = oldSpecularPower;
             ParentGame.BasicEffect.TextureEnabled = false;
             ParentGame.BasicEffect.Texture = null;
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            if (CollidesWith(ParentGame.Player))
+            {
+                this.Remove();
+            }
         }
 
         protected override void Dispose(bool disposing)
