@@ -75,6 +75,7 @@
     <Compile Include="ConstructorInfoEx.cs" />
     <Compile Include="Entities\Door.cs" />
     <Compile Include="Entities\INeedsAdjacencyInformation.cs" />
+    <Compile Include="Entities\TaggingLocation.cs" />
     <Compile Include="Entity.cs" />
     <Compile Include="Level.cs" />
     <Compile Include="MathF.cs" />
