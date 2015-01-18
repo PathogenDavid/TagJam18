@@ -35,6 +35,7 @@ namespace TagJam18
         private RenderTarget2D fullScreenRtt;
         private GeometricPrimitive fullScreenQuad;
         private BasicEffect fullScreenRenderEffect;
+        private Effect blurEffect;
 
         public TagGame()
             : base()
@@ -42,6 +43,7 @@ namespace TagJam18
             graphics = new GraphicsDeviceManager(this);
             keyboard = new KeyboardManager(this);
             mouse = new MouseManager(this);
+            GameSystems.Add(new EffectCompilerSystem(this));
 
             Content.RootDirectory = "Content";
         }
@@ -78,6 +80,9 @@ namespace TagJam18
 
             // Other graphics settings
             GraphicsDevice.SetRasterizerState(GraphicsDevice.RasterizerStates.CullBack);
+
+            // The EffectCompilerSystem allows automatic reloading of shaders in debug builds.
+            GameSystems.Add(new EffectCompilerSystem(this));
             
             base.Initialize();
         }
@@ -119,11 +124,18 @@ namespace TagJam18
                 TextureEnabled = true
             };
 
+            blurEffect = Content.Load<Effect>("BlurShader");
+
             base.LoadContent();
         }
 
         protected override void UnloadContent()
         {
+            blurEffect.Dispose();
+            fullScreenRenderEffect.Dispose();
+            fullScreenQuad.Dispose();
+            fullScreenRtt.Dispose();
+
             BasicEffect.Dispose();
 
             foreach (Entity entity in entities)
@@ -149,10 +161,19 @@ namespace TagJam18
             { entity.Render(gameTime); }
             EndProtectEntitiesList();
 
+            //GraphicsDevice.SetBlendState(GraphicsDevice.BlendStates.AlphaBlend);
             GraphicsDevice.SetRenderTargets(defaultRenderTarget);
-            //GraphicsDevice.Clear(Color.Red);
-            fullScreenRenderEffect.Texture = fullScreenRtt;
-            fullScreenQuad.Draw(fullScreenRenderEffect);
+            GraphicsDevice.Clear(Color.Red);
+            //fullScreenRenderEffect.Alpha = 0.5f;
+            //fullScreenRenderEffect.Texture = fullScreenRtt;
+            //fullScreenQuad.Draw(fullScreenRenderEffect);
+            //GraphicsDevice.SetBlendState(GraphicsDevice.BlendStates.Default);
+
+            blurEffect.Parameters["RenderTargetTexture"].SetResource(fullScreenRtt);
+            blurEffect.Parameters["TextureSampler"].SetResource(GraphicsDevice.SamplerStates.Default);
+            blurEffect.Parameters["Center"].SetValue(new Vector2(MathF.Sin(gameTime.TotalGameTime.TotalSeconds), MathF.Cos(gameTime.TotalGameTime.TotalSeconds / -2f)));
+            fullScreenQuad.Draw(blurEffect);
+            //GraphicsDevice.Quad.Draw(blurEffect, true);
             
             base.Draw(gameTime);
         }

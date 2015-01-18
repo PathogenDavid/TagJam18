@@ -18,5 +18,15 @@ namespace TagJam18
         {
             return (float)Math.Sin(x);
         }
+
+        public static float Cos(float x)
+        {
+            return Cos((double)x);
+        }
+
+        public static float Cos(double x)
+        {
+            return (float)Math.Cos(x);
+        }
     }
 }
