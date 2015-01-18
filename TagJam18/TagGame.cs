@@ -161,14 +161,16 @@ namespace TagJam18
             { entity.Render(gameTime); }
             EndProtectEntitiesList();
 
-            //GraphicsDevice.SetBlendState(GraphicsDevice.BlendStates.AlphaBlend);
             GraphicsDevice.SetRenderTargets(defaultRenderTarget);
             GraphicsDevice.Clear(Color.Red);
-            //fullScreenRenderEffect.Alpha = 0.5f;
-            //fullScreenRenderEffect.Texture = fullScreenRtt;
-            //fullScreenQuad.Draw(fullScreenRenderEffect);
-            //GraphicsDevice.SetBlendState(GraphicsDevice.BlendStates.Default);
 
+#if true
+            //GraphicsDevice.SetBlendState(GraphicsDevice.BlendStates.AlphaBlend);
+            //fullScreenRenderEffect.Alpha = 0.5f;
+            fullScreenRenderEffect.Texture = fullScreenRtt;
+            fullScreenQuad.Draw(fullScreenRenderEffect);
+            //GraphicsDevice.SetBlendState(GraphicsDevice.BlendStates.Default);
+#else
             blurEffect.Parameters["RenderTargetTexture"].SetResource(fullScreenRtt);
             blurEffect.Parameters["TextureSampler"].SetResource(GraphicsDevice.SamplerStates.Default);
             const float animScale = 0.1f;
@@ -179,6 +181,7 @@ namespace TagJam18
             blurEffect.Parameters["Transform"].SetValue(Matrix.RotationZ(MathF.Sin(gameTime.TotalGameTime.TotalSeconds) * 0.1f));
             fullScreenQuad.Draw(blurEffect);
             //GraphicsDevice.Quad.Draw(blurEffect, true);
+#endif
             
             base.Draw(gameTime);
         }

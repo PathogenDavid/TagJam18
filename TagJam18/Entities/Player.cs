@@ -14,11 +14,14 @@ namespace TagJam18.Entities
         private const float runSpeed = 2.5f;
 
         public int BeersDranken { get; private set; }
+
+        private Level level;
         
         [TilesetConstructor(5)]
         public Player(Level level, int x, int y)
             : base(level.ParentGame)
         {
+            this.level = level;
             RenderOrder = -1; // Also affects update order. Will ensure player position is fresh for all entities.
             this.Position = new Vector3((float)x, (float)y, -0.5f);
             this.CollisionSize = 1f;
@@ -59,7 +62,43 @@ namespace TagJam18.Entities
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
             float speed = ParentGame.Keyboard.IsKeyDown(Keys.Shift) ? runSpeed : walkSpeed;
 
-            Position += new Vector3(xSpeed * speed * deltaTime, ySpeed * speed * deltaTime, 0f);
+            Vector3 velocity = new Vector3(xSpeed * speed * deltaTime, ySpeed * speed * deltaTime, 0f);
+            const float extraSpace = 0.1f;
+            Vector3 newPosition = Position + velocity + velocity.Normalized() * extraSpace;
+
+            // Handle colliding with walls
+            int newTileX = (int)Math.Round(newPosition.X);
+            int newTileY = (int)Math.Round(newPosition.Y);
+            int tileX = (int)Math.Round(Position.X);
+            int tileY = (int)Math.Round(Position.Y);
+
+            bool stoppedX = false;
+            bool stoppedY = false;
+
+            //TODO: We should calculate the change needed to let the plauyer touch the wall exactly (so the distance they stop from the wall is exact.)
+            if (level.GetStaticEntityAt(newTileX, tileY) is Wall)
+            {
+                velocity.X = 0f;
+                stoppedX = true;
+            }
+
+            if (level.GetStaticEntityAt(tileX, newTileY) is Wall)
+            {
+                velocity.Y = 0f;
+                stoppedY = true;
+            }
+
+            // Handle edge case where player approaches an entity perfectly diagonally.
+            if (!stoppedX && !stoppedY && level.GetStaticEntityAt(newTileX, newTileY) is Wall)
+            {
+                velocity.X = velocity.Y = 0f;
+                stoppedX = stoppedY = true;
+            }
+
+            if (!stoppedX || !stoppedY)
+            {
+                Position += velocity;
+            }
         }
 
         protected override void Dispose(bool disposing)
