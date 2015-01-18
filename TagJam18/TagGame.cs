@@ -30,6 +30,12 @@ namespace TagJam18
         public PlayerCamera Camera { get; private set; }
         public Player Player { get; private set; }
 
+        private DepthStencilBuffer defaultDepthBuffer;
+        private RenderTarget2D defaultRenderTarget;
+        private RenderTarget2D fullScreenRtt;
+        private GeometricPrimitive fullScreenQuad;
+        private BasicEffect fullScreenRenderEffect;
+
         public TagGame()
             : base()
         {
@@ -99,6 +105,20 @@ namespace TagJam18
             level = new Level(this, Path.Combine(Content.RootDirectory, "Level1.tmx"));
             Camera.DefaultLookAt = new Vector3(level.Width / 2, level.Height / 2, 0f);
 
+            // Create render targets and related resources
+            defaultDepthBuffer = GraphicsDevice.DepthStencilBuffer;
+            defaultRenderTarget = GraphicsDevice.BackBuffer;
+            fullScreenRtt = RenderTarget2D.New(GraphicsDevice, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, graphics.PreferredBackBufferFormat);
+            fullScreenQuad = GeometricPrimitive.Plane.New(GraphicsDevice, 2f, 2f);
+
+            fullScreenRenderEffect = new BasicEffect(GraphicsDevice)
+            {
+                World = Matrix.Identity,
+                Projection = Matrix.Identity,
+                View = Matrix.Identity,
+                TextureEnabled = true
+            };
+
             base.LoadContent();
         }
 
@@ -121,13 +141,18 @@ namespace TagJam18
 #if DEBUG_CULLED_OBJECTS
             GraphicsDevice.SetRasterizerState(gameTime.FrameCount % 2 == 0 ? GraphicsDevice.RasterizerStates.CullBack : GraphicsDevice.RasterizerStates.CullNone);
 #endif
-
+            GraphicsDevice.SetRenderTargets(defaultDepthBuffer, fullScreenRtt);
             GraphicsDevice.Clear(Color.Black);
 
             ProtectEntitiesList();
             foreach (Entity entity in entities)
             { entity.Render(gameTime); }
             EndProtectEntitiesList();
+
+            GraphicsDevice.SetRenderTargets(defaultRenderTarget);
+            //GraphicsDevice.Clear(Color.Red);
+            fullScreenRenderEffect.Texture = fullScreenRtt;
+            fullScreenQuad.Draw(fullScreenRenderEffect);
             
             base.Draw(gameTime);
         }
