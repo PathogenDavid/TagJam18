@@ -6,6 +6,7 @@ using SharpDX.Toolkit.Graphics;
 
 namespace TagJam18.Entities
 {
+    //TODO: Right now if a tagging location ends at a corner / end of wall, it will stick past the wall.
     [StaticTileEntity]
     class TaggingLocation : Entity, INeedsAdjacencyInformation
     {
@@ -22,6 +23,8 @@ namespace TagJam18.Entities
 
         private GeometricPrimitive mesh;
         private const string meshId = "TaggingLocation/Cube";
+        private Texture2D texture;
+        private const string textureId = "TaggingLocation/Texture";
 
         private bool IsHorizontal
         {
@@ -76,7 +79,8 @@ namespace TagJam18.Entities
             tileHeight = 1;
             Position = new Vector3((float)x, (float)y, 0f);
 
-            mesh = ParentGame.Resources.Get<GeometricPrimitive>(meshId, () => GeometricPrimitive.Cube.New(ParentGame.GraphicsDevice));
+            mesh = ParentGame.Resources.Get<GeometricPrimitive>(meshId, () => GeometricPrimitive.Plane.New(ParentGame.GraphicsDevice));
+            texture = ParentGame.Resources.Get<Texture2D>(textureId, () => ParentGame.Content.Load<Texture2D>("Orange"));
         }
 
         public void ComputeAdjacency(Level level)
@@ -170,25 +174,50 @@ namespace TagJam18.Entities
         public override void Render(GameTime gameTime)
         {
             Vector3 offset = Vector3.Zero;
-            float distToWall = 0.5f - Wall.Thickness;
+            float distToWall = 0.5f + 0.5f - Wall.Thickness / 2f;
+            distToWall -= 0.01f; // Subtract a little to prevent Z-fighting.
+
+            // Make the poster the correct size
+            Matrix transform = Matrix.Scaling((float)Math.Max(tileWidth, tileHeight), Wall.Height - 1f, 1f);
+            transform *= Matrix.RotationX(MathF.Pi); // Flip the plane over
+
+            // Move the poster to the wall it is on
             switch (wallDirection)
             {
                 case WallDirection.Up:
                     offset = new Vector3(0f, -distToWall, 0f);
+                    transform *= Matrix.RotationX(MathF.Pi / 2f);
                     break;
                 case WallDirection.Down:
                     offset = new Vector3(0f, distToWall, 0f);
+                    transform *= Matrix.RotationX(-MathF.Pi / 2f);
                     break;
                 case WallDirection.Left:
                     offset = new Vector3(-distToWall, 0f, 0f);
+                    transform *= Matrix.RotationX(MathF.Pi / 2f);
+                    transform *= Matrix.RotationZ(-MathF.Pi / 2f);
                     break;
                 case WallDirection.Right:
                     offset = new Vector3(distToWall, 0f, 0f);
+                    transform *= Matrix.RotationX(MathF.Pi / 2f);
+                    transform *= Matrix.RotationZ(MathF.Pi / 2f);
                     break;
             }
 
-            ParentGame.BasicEffect.World = Matrix.Scaling((float)tileWidth, (float)tileHeight, 1f) * Matrix.Translation(Position + new Vector3(0f, 0f, -0.5f) + offset);
+            // Raise the poster to the correct height
+            offset += new Vector3(0f, 0f, -Wall.Height / 2f);
+
+            // Move to proper location
+            transform *= Matrix.Translation(Position + offset);
+
+            ParentGame.BasicEffect.World = transform;
+            ParentGame.BasicEffect.Texture = texture;
+            ParentGame.BasicEffect.TextureEnabled = true;
+            
             mesh.Draw(ParentGame.BasicEffect);
+
+            ParentGame.BasicEffect.TextureEnabled = false;
+            ParentGame.BasicEffect.Texture = null;
         }
 
         protected override void Dispose(bool disposing)
