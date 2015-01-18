@@ -51,7 +51,6 @@ namespace TagJam18.Entities
             float speed = ParentGame.Keyboard.IsKeyDown(Keys.Shift) ? runSpeed : walkSpeed;
 
             Position += new Vector3(xSpeed * speed * deltaTime, ySpeed * speed * deltaTime, 0f);
-
         }
 
         protected override void Dispose(bool disposing)

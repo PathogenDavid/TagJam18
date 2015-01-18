@@ -28,7 +28,7 @@ namespace TagJam18
 
         public ResourcePool Resources { get; private set; }
 
-        public Camera Camera { get; private set; }
+        public PlayerCamera Camera { get; private set; }
 
         public TagGame()
             : base()
@@ -82,13 +82,14 @@ namespace TagJam18
         {
             Resources = new ResourcePool();
 
-            Camera = new Camera(this);
+            Camera = new PlayerCamera(this);
 
             BasicEffect = new BasicEffect(GraphicsDevice)
             {
                 Projection = Matrix.PerspectiveFovRH(MathF.Pi / 4f, (float)GraphicsDevice.BackBuffer.Width / (float)GraphicsDevice.BackBuffer.Height, 0.1f, 100f),
                 World = Matrix.Identity,
                 PreferPerPixelLighting = true,
+                SpecularPower = 32f
             };
             BasicEffect.EnableDefaultLighting();
 
