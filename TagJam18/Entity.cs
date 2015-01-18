@@ -6,7 +6,7 @@ namespace TagJam18
 {
     public abstract class Entity : IDisposable
     {
-        protected TagGame ParentGame { get; private set; }
+        public TagGame ParentGame { get; private set; }
 
         private int _RenderOrder;
         public int RenderOrder

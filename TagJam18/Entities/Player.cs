@@ -16,7 +16,8 @@ namespace TagJam18.Entities
         public int BeersDranken { get; private set; }
         
         [TilesetConstructor(5)]
-        public Player(TagGame parentGame, int x, int y) : base(parentGame)
+        public Player(Level level, int x, int y)
+            : base(level.ParentGame)
         {
             RenderOrder = -1; // Also affects update order. Will ensure player position is fresh for all entities.
             this.Position = new Vector3((float)x, (float)y, -0.5f);

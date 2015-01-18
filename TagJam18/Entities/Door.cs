@@ -29,8 +29,8 @@ namespace TagJam18.Entities
         bool attachDown;
 
         [TilesetConstructor(4)]
-        public Door(TagGame parentGame, int x, int y)
-            : base(parentGame)
+        public Door(Level level, int x, int y)
+            : base(level.ParentGame)
         {
             TileX = x;
             TileY = y;

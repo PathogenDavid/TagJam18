@@ -243,7 +243,7 @@ namespace TagJam18
                 return;
             }
 
-            Entity newEntity = (Entity)entityConstructors[id].Invoke(ParentGame, x, y);
+            Entity newEntity = (Entity)entityConstructors[id].Invoke(this, x, y);
 
             if (newEntity.GetType().GetCustomAttribute<StaticTileEntityAttribute>() != null)
             {

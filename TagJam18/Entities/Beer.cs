@@ -17,12 +17,12 @@ namespace TagJam18.Entities
         private float disappearSpeed = 1f;
 
         [TilesetConstructor(2)]
-        public Beer(TagGame parentGame, int x, int y)
-            : base(parentGame)
+        public Beer(Level level, int x, int y)
+            : base(level.ParentGame)
         {
             this.Position = new Vector3((float)x, (float)y, 0f);
-            mesh = ParentGame.Resources.Get<Model>(meshId, () => parentGame.Content.Load<Model>("BeerBottle"));
-            texture = ParentGame.Resources.Get<Texture2D>(textureId, () => parentGame.Content.Load<Texture2D>("BeerBottleTexture"));
+            mesh = ParentGame.Resources.Get<Model>(meshId, () => ParentGame.Content.Load<Model>("BeerBottle"));
+            texture = ParentGame.Resources.Get<Texture2D>(textureId, () => ParentGame.Content.Load<Texture2D>("BeerBottleTexture"));
 
             Random r = new Random();
 

@@ -36,8 +36,8 @@ namespace TagJam18.Entities
         private string textureId = "Wall/Bricks";
 
         [TilesetConstructor(1)]
-        public Wall(TagGame parentGame, int x, int y)
-            : base(parentGame)
+        public Wall(Level level, int x, int y)
+            : base(level.ParentGame)
         {
             this.Position = new Vector3((float)x, (float)y, 0);
             mesh = ParentGame.Resources.Get<GeometricPrimitive>(meshId, () => GeometricPrimitive.Cube.New(ParentGame.GraphicsDevice));
