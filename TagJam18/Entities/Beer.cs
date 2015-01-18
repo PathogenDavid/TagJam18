@@ -32,8 +32,11 @@ namespace TagJam18.Entities
             float xOff = r.NextFloat(-positionVariance, positionVariance);
             float yOff = r.NextFloat(-positionVariance, positionVariance);
 
+            const float scalingVariance = 0.05f;
+            float scaling = 0.55f + r.NextFloat(-scalingVariance, scalingVariance);
+
             // Flip the model over * orient bottle * move bottom of bottle to proper bottom * make bottle smaller * apply random position offset
-            baseTransform = Matrix.RotationX(MathF.Pi) * Matrix.RotationZ(rotation) * Matrix.Translation(0f, 0f, -1f) * Matrix.Scaling(0.6f) * Matrix.Translation(xOff, yOff, 0f);
+            baseTransform = Matrix.RotationX(MathF.Pi) * Matrix.RotationZ(rotation) * Matrix.Translation(0f, 0f, -1f) * Matrix.Scaling(scaling) * Matrix.Translation(xOff, yOff, 0f);
         }
 
         public override void Render(GameTime gameTime)
