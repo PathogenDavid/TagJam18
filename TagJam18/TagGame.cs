@@ -2,31 +2,30 @@
 #define DEBUG_CULLED_OBJECTS
 #endif
 
-using System;
-using System.Diagnostics;
 using SharpDX;
+using SharpDX.Direct3D11;
 using SharpDX.Toolkit;
 using SharpDX.Toolkit.Input;
 using SharpDX.Windows;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using SharpDX.Direct3D11;
-using DxSamplerState = SharpDX.Direct3D11.SamplerState;
 using TagJam18.Entities;
+using DxSamplerState = SharpDX.Direct3D11.SamplerState;
 
 namespace TagJam18
 {
     using SharpDX.Toolkit.Graphics;
 
-    public class TagGame : Game
+    public partial class TagGame : Game
     {
         private readonly GraphicsDeviceManager graphics;
         private readonly KeyboardManager keyboard;
         private readonly MouseManager mouse;
-        private List<Entity> entities = new List<Entity>();
         private Level level;
 
         public ResourcePool Resources { get; private set; }
+
+        internal BasicEffect BasicEffect;
 
         public PlayerCamera Camera { get; private set; }
         public Player Player { get; private set; }
@@ -77,8 +76,6 @@ namespace TagJam18
             base.Initialize();
         }
 
-        internal BasicEffect BasicEffect;
-
         protected override void LoadContent()
         {
             Resources = new ResourcePool();
@@ -115,110 +112,6 @@ namespace TagJam18
             Resources.Dispose();
 
             base.UnloadContent();
-        }
-
-        private class EntityOperation
-        {
-            public readonly bool IsAdd;
-            public readonly Entity Entity;
-
-            public EntityOperation(Entity entity, bool isAdd)
-            {
-                this.IsAdd = isAdd;
-                this.Entity = entity;
-            }
-        }
-
-        private int entityListProtectionDepth = 0;
-        private List<EntityOperation> pendingEntityOperations = new List<EntityOperation>();
-        private void ProtectEntitiesList()
-        {
-            if (entityListProtectionDepth == 0)
-            { Debug.Assert(pendingEntityOperations.Count == 0); }
-
-            entityListProtectionDepth++;
-        }
-
-        private void EndProtectEntitiesList()
-        {
-            if (entityListProtectionDepth == 0)
-            { throw new InvalidOperationException("Tried to end entity list protection when it wasn't being protected!"); }
-
-            entityListProtectionDepth--;
-
-            // Apply changes made to the eneities list
-            if (entityListProtectionDepth == 0)
-            {
-                foreach (EntityOperation operation in pendingEntityOperations)
-                {
-                    if (operation.IsAdd)
-                    { AddEntity(operation.Entity); }
-                    else
-                    { RemoveEntity(operation.Entity); }
-                }
-                pendingEntityOperations.Clear();
-            }
-        }
-
-        /// <remarks>Note: If done during an update, entity addition may not be reflected until the end of the update.</remarks>
-        public void AddEntity(Entity entity)
-        {
-            if (entityListProtectionDepth > 0)
-            {
-                pendingEntityOperations.Add(new EntityOperation(entity, true));
-                return;
-            }
-
-            entities.Add(entity);
-            SortEntityRenderOrder();
-
-            if (Player == null && entity is Player)
-            { Player = (Player)entity; }
-        }
-
-        /// <remarks>Note: If done during an update, entity removal may not be reflected until the end of the update.</remarks>
-        public void RemoveEntity(Entity entity)
-        {
-            if (entityListProtectionDepth > 0)
-            {
-                pendingEntityOperations.Add(new EntityOperation(entity, false));
-                return;
-            }
-
-            entities.Remove(entity);
-
-            if (Player == entity)
-            { Player = null; }
-        }
-
-        public IEnumerable<Entity> GetEntities()
-        {
-            ProtectEntitiesList();
-            foreach (Entity entity in entities)
-            {
-                yield return entity;
-            }
-            EndProtectEntitiesList();
-        }
-
-        public IEnumerable<T> GetEntities<T>()
-            where T : class
-        {
-            ProtectEntitiesList();
-            foreach (Entity entity in entities)
-            {
-                T ret = entity as T;
-                if (ret != null)
-                {
-                    yield return ret;
-                }
-            }
-            EndProtectEntitiesList();
-        }
-
-        public void SortEntityRenderOrder()
-        {
-            entities.Sort((a, b) => a.RenderOrder.CompareTo(b.RenderOrder));
         }
 
         protected override void Draw(GameTime gameTime)
