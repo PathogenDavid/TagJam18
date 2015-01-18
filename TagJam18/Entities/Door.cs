@@ -11,12 +11,14 @@ namespace TagJam18.Entities
     {
         private GeometricPrimitive mesh;
         private const string meshId = "Door/Mesh";
+        private Texture2D texture;
+        private const string textureId = "Door/Texture";
 
         int TileX;
         int TileY;
 
         public const float Thickness = Wall.Thickness / 4f;
-        public const float Width = 1f;
+        public const float Width = 1f + 0.05f; // A little extra to fill cap between double doors
         public const float Height = Wall.Height;
 
         private Matrix modelTransform;
@@ -33,6 +35,7 @@ namespace TagJam18.Entities
             TileX = x;
             TileY = y;
             mesh = ParentGame.Resources.Get<GeometricPrimitive>(meshId, () => GeometricPrimitive.Cube.New(ParentGame.GraphicsDevice));
+            texture = ParentGame.Resources.Get<Texture2D>(textureId, () => ParentGame.Content.Load<Texture2D>("Door"));
             ComputeTransforms();
         }
 
@@ -98,21 +101,14 @@ namespace TagJam18.Entities
 
         public override void Render(GameTime gameTime)
         {
-            float rotateAmount = MathF.Sin((float)gameTime.TotalGameTime.TotalSeconds);
-            ParentGame.BasicEffect.World = modelTransform * Matrix.RotationZ(rotateAmount) * worldTransform;
-            Vector4 oldColor = ParentGame.BasicEffect.DiffuseColor;
-
-            if (attachLeft)
-            { ParentGame.BasicEffect.DiffuseColor = new Vector4(1f, 0f, 0f, 1f); }
-            else if (attachRight)
-            { ParentGame.BasicEffect.DiffuseColor = new Vector4(0f, 1f, 0f, 1f); }
-            else if (attachUp)
-            { ParentGame.BasicEffect.DiffuseColor = new Vector4(0f, 0f, 1f, 1f); }
-            else if (attachDown)
-            { ParentGame.BasicEffect.DiffuseColor = new Vector4(1f, 1f, 0f, 1f); }
+            ParentGame.BasicEffect.World = modelTransform * worldTransform;
+            ParentGame.BasicEffect.Texture = texture;
+            ParentGame.BasicEffect.TextureEnabled = true;
 
             mesh.Draw(ParentGame.BasicEffect);
-            ParentGame.BasicEffect.DiffuseColor = oldColor;
+
+            ParentGame.BasicEffect.TextureEnabled = false;
+            ParentGame.BasicEffect.Texture = null;
         }
 
         protected override void Dispose(bool disposing)
