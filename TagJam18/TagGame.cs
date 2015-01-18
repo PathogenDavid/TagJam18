@@ -171,7 +171,12 @@ namespace TagJam18
 
             blurEffect.Parameters["RenderTargetTexture"].SetResource(fullScreenRtt);
             blurEffect.Parameters["TextureSampler"].SetResource(GraphicsDevice.SamplerStates.Default);
-            blurEffect.Parameters["Center"].SetValue(new Vector2(MathF.Sin(gameTime.TotalGameTime.TotalSeconds), MathF.Cos(gameTime.TotalGameTime.TotalSeconds / -2f)));
+            const float animScale = 0.1f;
+            Vector2 center = new Vector2(MathF.Sin(gameTime.TotalGameTime.TotalSeconds * 2.0) * animScale, MathF.Cos(gameTime.TotalGameTime.TotalSeconds / -2.0) * animScale);
+            center += new Vector2(0.5f, 0.5f);
+            blurEffect.Parameters["Center"].SetValue(center); // Note: Center is in UV coordinates across the render target
+            blurEffect.Parameters["BlurWidth"].SetValue(-0.1f);
+            blurEffect.Parameters["Transform"].SetValue(Matrix.RotationZ(MathF.Sin(gameTime.TotalGameTime.TotalSeconds) * 0.1f));
             fullScreenQuad.Draw(blurEffect);
             //GraphicsDevice.Quad.Draw(blurEffect, true);
             

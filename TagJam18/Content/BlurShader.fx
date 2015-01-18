@@ -1,5 +1,6 @@
 ﻿// Based on http://developer.download.nvidia.com/shaderlibrary/webpages/hlsl_shaders.html#post_radialBlur
 // (I couldn't use it directly due to infinite issues getting txfxc to take the shader.)
+// I'm using SharpDX's shader structures to make it easier to interoperate with the Toolkit.
 
 #include "Structures.fxh"
 
@@ -8,16 +9,16 @@
 float BlurStart = 1.f;
 float BlurWidth = -0.2f;
 float2 Center = float2(0.5f, 0.5f);
+row_major float4x4 Transform;
 
 Texture2D RenderTargetTexture : register(t0);
 SamplerState TextureSampler : register(s0);
 
-// Copy+pasted from SharpDX BasicEffect.fx
 VSOutputTx VSMain(VSInputTx vin)
 {
     VSOutputTx vout;
 
-    vout.PositionPS = vin.Position;
+    vout.PositionPS = mul(vin.Position, Transform);
     vout.TexCoord = vin.TexCoord - Center;
     vout.Diffuse = 0.f;
     vout.Specular = 0.f;
