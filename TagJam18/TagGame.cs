@@ -193,7 +193,10 @@ namespace TagJam18
             GraphicsDevice.Clear(new Color4(0f, 0f, 0f, 0f));
             spriteBatch.Begin(SpriteSortMode.Deferred, GraphicsDevice.BlendStates.NonPremultiplied);
 
-            spriteBatch.DrawString(spriteFont, String.Format("%Drunk = {0}", Player.PercentDrunk), new Vector2(50f, 50f), new Color(1f, 1f, 1f, 0.5f));
+            spriteBatch.DrawString(spriteFont, String.Format("Your status: {0}", GetPlayerStatusMessage()), new Vector2(50f, 50f), Color.White);
+
+            if (numTagsFinished > 0)
+            { spriteBatch.DrawString(spriteFont, String.Format("Walls defaced: {0}", numTagsFinished), new Vector2(50f, 70f), Color.White); }
 
             foreach (SpeechBubble bubble in speechBubbles)
             { bubble.Render(gameTime, spriteBatch); }
@@ -289,6 +292,30 @@ namespace TagJam18
             ActuallyRemoveSpeechBubbles();
             
             base.Update(gameTime);
+        }
+
+        public string GetPlayerStatusMessage()
+        {
+            if (Player == null)
+            { return "Lost"; }
+
+            if (Player.IsBrave)
+            { return "Slewed"; }
+
+            if (Player.BeersDranken >= 2 && !Player.IsDrunk)
+            { return "Starting to feel it..."; }
+
+            if (!Player.IsDrunk)
+            { return "Sober, afraid of getting caught"; }
+
+            if (Player.PercentDrunk > 0.7f)
+            { return "Practically invicible"; }
+            else if (Player.PercentDrunk > 0.5f)
+            { return "'I'm only a little drunk!'"; }
+            else if (Player.PercentDrunk > 0.2f)
+            { return "Getting there..."; }
+            else
+            { return "Tipsy"; }
         }
 
         public void AddSpeechBubble(SpeechBubble newBubble)
