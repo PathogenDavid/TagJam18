@@ -44,6 +44,9 @@ namespace TagJam18.Entities
 
         public bool IsTagged { get; set; }
 
+        private SpriteFont spriteFont;
+        private SpriteBatch spriteBatch;
+
         private bool IsHorizontal
         {
             get { return tileWidth >= tileHeight; }
@@ -128,6 +131,9 @@ namespace TagJam18.Entities
             };
 
             wallTexture = ParentGame.Resources.Get<Texture2D>(wallTextureId, () => ParentGame.Content.Load<Texture2D>("bricks"));
+
+            spriteFont = ParentGame.Content.Load<SpriteFont>("LeagueGothic");
+            spriteBatch = new SpriteBatch(ParentGame.GraphicsDevice);
         }
 
         public void ComputeAdjacency(Level level)
@@ -303,7 +309,10 @@ namespace TagJam18.Entities
         private Vector2 mousePosition;
         private bool isPainting;
 
-        public void RenderTaggingHud(GameTime gameTime)
+        private float scoreForTagging = 0f;
+        private const float scoreAccrueRate = 10000f; // TODO: Right now you just gain points for painting, eventually we want to see how close they were to the template and do that instead.
+
+        public void RenderTaggingHud(GameTime gameTime, RenderTarget2D hudRtt)
         {
             ParentGame.GraphicsDevice.SetBlendState(ParentGame.GraphicsDevice.BlendStates.NonPremultiplied);
 
@@ -382,12 +391,20 @@ namespace TagJam18.Entities
             //------------------------------------------------------------------
             if (isPainting)
             {
-                RenderTarget2D oldRtt = ParentGame.GraphicsDevice.BackBuffer;
                 ParentGame.GraphicsDevice.SetRenderTargets(rtt);
                 taggingEffect.Alpha = 1f;
                 mesh.Draw(taggingEffect);
-                ParentGame.GraphicsDevice.SetRenderTargets(oldRtt);
+                ParentGame.GraphicsDevice.SetRenderTargets(hudRtt);
+
+                scoreForTagging += scoreAccrueRate * (float)gameTime.ElapsedGameTime.TotalSeconds;
             }
+
+            //------------------------------------------------------------------
+            // Draw score on screen
+            //------------------------------------------------------------------
+            spriteBatch.Begin(SpriteSortMode.Deferred, ParentGame.GraphicsDevice.BlendStates.NonPremultiplied);
+            spriteBatch.DrawString(spriteFont, String.Format("Score: {0:#,0}", (long)scoreForTagging), new Vector2(50f, ParentGame.GraphicsDevice.Viewport.Height - 50f - 20f), Color.White);
+            spriteBatch.End();
         }
 
         public override void Update(GameTime gameTime)
@@ -413,7 +430,7 @@ namespace TagJam18.Entities
                 if (ParentGame.Player != null)
                 { ParentGame.AddSpeechBubble(new SpeechBubble(ParentGame, Player.DoneTaggingMessage, ParentGame.Player.Position)); }
 
-                ParentGame.FinishTagging();
+                ParentGame.FinishTagging((long)scoreForTagging);
             }
         }
 
@@ -424,6 +441,8 @@ namespace TagJam18.Entities
 
             if (disposing)
             {
+                spriteBatch.Dispose();
+                //TODO: Not disposing spriteFont because it will blow up TagGame when we are disposed.
                 taggingEffect.Dispose();
                 ParentGame.Resources.Drop(templateTextureId, templateTexture);
                 ParentGame.Resources.Drop(meshId, mesh);

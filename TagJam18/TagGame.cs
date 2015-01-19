@@ -50,6 +50,7 @@ namespace TagJam18
 
         private SpriteFont spriteFont;
         private SpriteBatch spriteBatch;
+
         private List<SpeechBubble> speechBubbles = new List<SpeechBubble>();
 
         public TagGame()
@@ -198,6 +199,9 @@ namespace TagJam18
             if (numTagsFinished > 0)
             { spriteBatch.DrawString(spriteFont, String.Format("Walls defaced: {0}", numTagsFinished), new Vector2(50f, 70f), Color.White); }
 
+            if (Score > 0)
+            { spriteBatch.DrawString(spriteFont, String.Format("Total score: {0:#,0}", Score), new Vector2(50f, 90f), Color.White); }
+
             foreach (SpeechBubble bubble in speechBubbles)
             { bubble.Render(gameTime, spriteBatch); }
 
@@ -205,7 +209,7 @@ namespace TagJam18
 
             if (IsPlayerTagging)
             {
-                TaggingTarget.RenderTaggingHud(gameTime);
+                TaggingTarget.RenderTaggingHud(gameTime, hudRtt);
             }
 
             // Present the final screen
@@ -275,8 +279,7 @@ namespace TagJam18
             Keyboard = keyboard.GetState();
             Mouse = mouse.GetState();
 
-            //!IsPlayerTagging && 
-            if (Keyboard.IsKeyReleased(Keys.Escape))
+            if (!IsPlayerTagging && Keyboard.IsKeyReleased(Keys.Escape))
             { Exit(); }
 
             if (Keyboard.IsKeyReleased(Keys.N))
@@ -348,10 +351,14 @@ namespace TagJam18
         }
 
         private int numTagsFinished = 0;
-        public void FinishTagging()
+        public void FinishTagging(long score)
         {
+            const long scoreForFinishing = 1000000;
             TaggingTarget = null;
             numTagsFinished++;
+            Score += score + scoreForFinishing;
         }
+
+        public long Score { get; private set; }
     }
 }
