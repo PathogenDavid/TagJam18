@@ -268,12 +268,6 @@ namespace TagJam18.Entities
                     ParentGame.AddSpeechBubble(new SpeechBubble(ParentGame, NotDrunkEnoughMessage, Position));
                     return;
                 }
-
-                if (taggingLocation.IsTagged)
-                {
-                    ParentGame.AddSpeechBubble(new SpeechBubble(ParentGame, DoneTaggingMessage, Position));
-                    return;
-                }
                 
                 // If we're brave enough, start the tagging process!
                 ParentGame.StartTagging(taggingLocation);

@@ -343,9 +343,6 @@ namespace TagJam18
 
         public void StartTagging(TaggingLocation taggingLocation)
         {
-            if (taggingLocation.IsTagged)
-            { throw new InvalidOperationException("Can't start tagging a location that is already tagged!"); }
-
             TaggingTarget = taggingLocation;
             TaggingTarget.IsTagged = true;
         }

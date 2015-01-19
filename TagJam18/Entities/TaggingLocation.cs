@@ -334,7 +334,8 @@ namespace TagJam18.Entities
             //------------------------------------------------------------------
             taggingEffect.DiffuseColor = Vector4.One;
 
-            Matrix correctForScreenAspect = Matrix.Scaling(1f / ParentGame.GraphicsDevice.Viewport.AspectRatio, 1f, 1f);
+            Vector3 correctForScreenAspectScale = new Vector3(1f / ParentGame.GraphicsDevice.Viewport.AspectRatio, 1f, 1f);
+            Matrix correctForScreenAspect = Matrix.Scaling(correctForScreenAspectScale);
 
             const float aspectRatio = TypicalTaggingLocationWidth / TagHeight;
             const float prefferredUseScreenHeight = 0.95f;
@@ -344,7 +345,10 @@ namespace TagJam18.Entities
             if (ParentGame.GraphicsDevice.Viewport.AspectRatio < 1.4)
             { useScreenHeight = 0.85f; }
 
-            taggingEffect.World = Matrix.Scaling(useScreenHeight * aspectRatio * 2f, useScreenHeight * 2f, 1f) * correctForScreenAspect;
+            float useScreenWidth = useScreenHeight * aspectRatio;
+
+            Vector3 posterScale = new Vector3(useScreenWidth * 2f, useScreenHeight * 2f, 1f);
+            taggingEffect.World = Matrix.Scaling(posterScale) * correctForScreenAspect;
 
             //------------------------------------------------------------------
             // Render a light background for tagging area
@@ -374,8 +378,9 @@ namespace TagJam18.Entities
             // Used to make sure cursor scales right with 4:3 monitor hack
             float cursorCorrection = ((useScreenHeight + (prefferredUseScreenHeight - useScreenHeight) / 2f) / prefferredUseScreenHeight);
 
-            float cursorSize = 0.1f;//0.07f;
+            float cursorSize = 0.1f;
             cursorSize *= cursorCorrection;
+
             taggingEffect.DiffuseColor = paintColors[currentPaintColor];
             taggingEffect.Texture = paintSprayTexture;
             taggingEffect.World = Matrix.Scaling(cursorSize, cursorSize, 1f) * correctForScreenAspect;
@@ -393,7 +398,23 @@ namespace TagJam18.Entities
             {
                 ParentGame.GraphicsDevice.SetRenderTargets(rtt);
                 taggingEffect.Alpha = 1f;
+
+                // Compute the location of the cursor within the render target
+                Vector2 topLeftCornerOfPoster = new Vector2((1f - useScreenWidth * correctForScreenAspectScale.X) / 2f, (1f - useScreenHeight) / 2f);
+                Vector2 bottomRightCornerOfPoster = Vector2.One - topLeftCornerOfPoster;
+                Vector2 diffs = bottomRightCornerOfPoster - topLeftCornerOfPoster;
+                Vector2 mousePositionInRtt = mousePosition - topLeftCornerOfPoster;
+                mousePositionInRtt /= diffs;
+                mousePositionInRtt = mousePositionInRtt * 2f - Vector2.One;
+
+                // Compute the distorted width of the cursor within the render target
+                float distortedCursorWidth = cursorSize / aspectRatio;
+
+                taggingEffect.World = Matrix.Scaling(distortedCursorWidth, cursorSize, 1f);
+                taggingEffect.World *= Matrix.Translation(mousePositionInRtt.X, -mousePositionInRtt.Y, 0f);
+
                 mesh.Draw(taggingEffect);
+
                 ParentGame.GraphicsDevice.SetRenderTargets(hudRtt);
 
                 scoreForTagging += scoreAccrueRate * (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -431,6 +452,7 @@ namespace TagJam18.Entities
                 { ParentGame.AddSpeechBubble(new SpeechBubble(ParentGame, Player.DoneTaggingMessage, ParentGame.Player.Position)); }
 
                 ParentGame.FinishTagging((long)scoreForTagging);
+                scoreForTagging = 0f;// In case the user comes back, don't re-reward them score.
             }
         }
 
