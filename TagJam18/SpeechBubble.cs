@@ -26,6 +26,10 @@ namespace TagJam18
             font = parentGame.Content.Load<SpriteFont>("LeagueGothic"); // Since TagGame uses this font too, we just let Toolkit cache it.
             messageSize = font.MeasureString(message);
         }
+
+        public SpeechBubble(TagGame parentGame, string[] messages, Vector3 position)
+            : this(parentGame, messages[parentGame.Random.Next(0, messages.Length)], position)
+        { }
         
         public void Render(GameTime gameTime, SpriteBatch spriteBatch)
         {

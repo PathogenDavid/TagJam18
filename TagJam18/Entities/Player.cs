@@ -14,6 +14,55 @@ namespace TagJam18.Entities
         private const float walkSpeed = 1.5f;
         private const float runSpeed = 2.5f;
 
+        private string[] NotDrunkEnoughMessage =
+        {
+            "I can't make art while I'm sober!",
+            "I need a drink...",
+            "But...giant beers!",
+            "Not until I'm slewed!",
+            "Need...TAG...beer...",
+            "No beer, no spaniels."
+        };
+
+        private string[] DrunkEnoughMessage =
+        {
+            "All right, letsh do thish!",
+            "*hic*No time like the*hic*present",
+            "Deface everything! #TAGJAM18",
+            "I'd say I'm slewed enough now!"
+        };
+
+        private string[] DrinkMessage =
+        {
+            "Mmmm, delicious",
+            "I love #TAGJAM18 beer!",
+            "Best beer ever",
+            "*burp* yum!"
+        };
+
+        private string[] DrunkDrinkMessage =
+        {
+            "Mmmm,*hic*delicious",
+            "I love*hic*#TAGJAM18 beer!",
+            "Besht*hic*beer eber",
+            "*burp* gettin' there..."
+        };
+
+        private string[] BuzzedMessage =
+        {
+            "Got a nice buzz going on.",
+            "Now I'm feel'in it!",
+            "*burp* that's the stuff!"
+        };
+
+        private string[] DoneTaggingMessage =
+        {
+            "Arf arf, mother**ker!",
+            "Logan: 1, The Man: 0",
+            "A true *hic* masterpiece!",
+            "Are you proud of me, madmarcel?"
+        };
+
         public int BeersDranken { get; private set; }
         /// <summary>
         /// The amount of beers the player has to drink before the screen starts distorting.
@@ -72,8 +121,19 @@ namespace TagJam18.Entities
 
         public void DrinkBeer()
         {
+            bool wasDrunk = IsDrunk;
             BeersDranken++;
             Debug.Print("GLUG GLUG GLUG. %Drunk = {0}", PercentDrunkRaw);
+
+            string[] messages = DrinkMessage;
+            if (IsBrave)
+            { messages = DrunkEnoughMessage; }
+            else if (!wasDrunk && IsDrunk)
+            { messages = BuzzedMessage; }
+            else if (PercentDrunkRaw > 0.6f)
+            { messages = DrunkDrinkMessage; }
+
+            ParentGame.AddSpeechBubble(new SpeechBubble(ParentGame, messages, Position));
         }
 
         public override void Render(GameTime gameTime)
@@ -84,11 +144,6 @@ namespace TagJam18.Entities
 
         public override void Update(GameTime gameTime)
         {
-            if (ParentGame.Keyboard.IsKeyReleased(Keys.Z))
-            {
-                ParentGame.AddSpeechBubble(new SpeechBubble(ParentGame, "This is a test!*.?", Position));
-            }
-
             // Keep PercentDrunk up-to-date
             if (Math.Abs(PercentDrunk - PercentDrunkRaw) < 0.001f)
             { PercentDrunk = PercentDrunkRaw; }
