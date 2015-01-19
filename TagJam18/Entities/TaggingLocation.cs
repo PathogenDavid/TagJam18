@@ -214,6 +214,9 @@ namespace TagJam18.Entities
 
         protected override void Dispose(bool disposing)
         {
+            if (Disposed)
+            { return; }
+
             if (disposing)
             {
                 ParentGame.Resources.Drop(textureId, texture);
