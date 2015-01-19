@@ -72,6 +72,7 @@ namespace TagJam18.Entities
         public TaggingLocation(Level level, int x, int y)
             : base(level.ParentGame)
         {
+            RenderOrder = 1000; // Need to be rendered after most things because we can be transparent.
             this.level = level;
             tileX = x;
             tileY = y;
@@ -203,13 +204,40 @@ namespace TagJam18.Entities
             transform *= Matrix.Translation(Position + offset);
 
             ParentGame.BasicEffect.World = transform;
-            ParentGame.BasicEffect.Texture = texture;
-            ParentGame.BasicEffect.TextureEnabled = true;
-            
-            mesh.Draw(ParentGame.BasicEffect);
 
-            ParentGame.BasicEffect.TextureEnabled = false;
-            ParentGame.BasicEffect.Texture = null;
+            if (false)
+            {
+                ParentGame.BasicEffect.Texture = texture;
+                ParentGame.BasicEffect.TextureEnabled = true;
+
+                mesh.Draw(ParentGame.BasicEffect);
+
+                ParentGame.BasicEffect.TextureEnabled = false;
+                ParentGame.BasicEffect.Texture = null;
+            }
+            else
+            {
+                Vector4 oldColor = ParentGame.BasicEffect.DiffuseColor;
+                ParentGame.GraphicsDevice.SetBlendState(ParentGame.GraphicsDevice.BlendStates.AlphaBlend);
+                ParentGame.GraphicsDevice.SetDepthStencilState(ParentGame.GraphicsDevice.DepthStencilStates.DepthRead);
+
+                // Tagging locations glow more brightly depending on how drunk the player is
+                float percentDrunk = ParentGame.Player == null ? 0f : ParentGame.Player.PercentDrunk;
+                const float minBlink = 0.5f;
+                const float maxBlink = 0.8f;
+                const float minAlpha = 0.1f;
+                float alpha = minBlink + MathF.Sin((float)gameTime.TotalGameTime.TotalSeconds) * (maxBlink - minBlink);
+                alpha *= Math.Min(percentDrunk + minAlpha, 1f);
+
+                ParentGame.BasicEffect.Alpha = alpha;
+                ParentGame.BasicEffect.DiffuseColor = new Vector4(1f, 0.85f, 0.5f, 1f); // Glow color
+                mesh.Draw(ParentGame.BasicEffect);
+
+                ParentGame.BasicEffect.Alpha = 1f;
+                ParentGame.BasicEffect.DiffuseColor = oldColor;
+                ParentGame.GraphicsDevice.SetBlendState(ParentGame.GraphicsDevice.BlendStates.Default);
+                ParentGame.GraphicsDevice.SetDepthStencilState(ParentGame.GraphicsDevice.DepthStencilStates.Default);
+            }
         }
 
         protected override void Dispose(bool disposing)
