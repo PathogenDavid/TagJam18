@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using SharpDX;
 using SharpDX.Toolkit;
 using SharpDX.Toolkit.Input;
@@ -7,7 +8,7 @@ using SharpDX.Toolkit.Graphics;
 
 namespace TagJam18.Entities
 {
-    public class Player : Entity
+    public class Player : Entity, INeedsAdjacencyInformation
     {
         private GeometricPrimitive mesh;
         private const string meshId = "Player/Mesh";
@@ -17,7 +18,6 @@ namespace TagJam18.Entities
         private string[] NotDrunkEnoughMessage =
         {
             "I can't make art while I'm sober!",
-            "I need a drink...",
             "But...giant beers!",
             "Not until I'm slewed!",
             "Need...TAG...beer...",
@@ -60,7 +60,13 @@ namespace TagJam18.Entities
             "Arf arf, mother**ker!",
             "Logan: 1, The Man: 0",
             "A true *hic* masterpiece!",
-            "Are you proud of me, madmarcel?"
+            "Are you proud of me now, madmarcel?"
+        };
+
+        private string NotTaggableMessage =
+        {
+            "Ehh, this isn't the best spot.",
+            "I can do better.",
         };
 
         public int BeersDranken { get; private set; }
@@ -117,6 +123,22 @@ namespace TagJam18.Entities
             BeersDranken = 0;
             ToleranceBuzzed = 2;//TODO: Determine this based on the number of beers on the level
             Tolerance = 6;//TODO: Determine this based on the number of beers on the level
+        }
+
+        public void ComputeAdjacency(Level level)
+        {
+            // We don't actually need adjacency information, but this runs after the level is fully set up so we can use it to get a beer count.
+            int numBeers = ParentGame.GetEntities<Beer>().Count();
+            ToleranceBuzzed = Math.Min(numBeers / 4, 3);
+            Tolerance = numBeers - numBeers / 4;
+
+            if (Tolerance < 3)
+            {
+                ToleranceBuzzed = 1;
+                Tolerance = numBeers;
+            }
+
+            Debug.Print("Player will need {0} beers to get buzzed and {1} beers to get slewed.", ToleranceBuzzed, Tolerance);
         }
 
         public void DrinkBeer()
