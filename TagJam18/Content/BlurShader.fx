@@ -1,4 +1,5 @@
-﻿// Based on http://developer.download.nvidia.com/shaderlibrary/webpages/hlsl_shaders.html#post_radialBlur
+﻿// This software contains source code provided by NVIDIA Corporation.
+// Based on http://developer.download.nvidia.com/shaderlibrary/webpages/hlsl_shaders.html#post_radialBlur
 // (I couldn't use it directly due to infinite issues getting txfxc to take the shader.)
 // I'm using SharpDX's shader structures to make it easier to interoperate with the Toolkit.
 

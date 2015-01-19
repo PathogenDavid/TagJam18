@@ -60,3 +60,24 @@ Being a time-constrained game jam, I didn't quite finish everything I set out to
 * Drunk full screen shader was based on the radial blur shader by nVidia - http://developer.download.nvidia.com/shaderlibrary/webpages/hlsl_shaders.html#post_radialBlur
 * "League Gothic" font by The League of Movable Type - https://www.theleagueofmoveabletype.com/league-gothic
 * Picture of a cavalier king charles spaniel by High-town-wp - Used for the graffiti template - https://commons.wikimedia.org/wiki/File:Cavalier-king-charles-spaniels.jpg
+
+= License =
+Unless otherwise noted, C# code, HLSL code, and XML documents are licensed under the MIT License with the no endorsement clause, see License.txt for details.
+
+The following are licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License http://creativecommons.org/licenses/by-sa/3.0/
+* BeerBottleTexture.dds
+* BeerBottleTexture.psd
+
+The following are licensed under the Creative Commons Attribution-ShareAlike 4.0 International License http://creativecommons.org/licenses/by-sa/4.0/
+* BeerBottle.blend
+* BeerBottle.fbx
+* Template1.png
+* Template1.psd
+* Tileset.png
+* Tileset.psd
+* PaintSpray.png
+* Level1.tmx
+
+For assets taken from opengameart, see the licenses on their respective pages.
+
+For Structures.fxh, see the notice included at the top of the file.
