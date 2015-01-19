@@ -38,6 +38,9 @@ namespace TagJam18
         private BasicEffect fullScreenRenderEffect;
         private Effect blurEffect;
 
+        private SpriteFont spriteFont;
+        private SpriteBatch spriteBatch;
+
         public TagGame()
             : base()
         {
@@ -127,11 +130,18 @@ namespace TagJam18
 
             blurEffect = Content.Load<Effect>("BlurShader");
 
+            //Load fonts
+            spriteFont = Content.Load<SpriteFont>("LeagueGothic");
+            spriteBatch = new SpriteBatch(GraphicsDevice);
+
             base.LoadContent();
         }
 
         protected override void UnloadContent()
         {
+            spriteBatch.Dispose();
+            spriteFont.Dispose();
+
             blurEffect.Dispose();
             fullScreenRenderEffect.Dispose();
             fullScreenQuad.Dispose();
@@ -210,6 +220,11 @@ namespace TagJam18
                 // Render the screen
                 fullScreenQuad.Draw(blurEffect);
             }
+
+            // Test sprite stuff:
+            spriteBatch.Begin();
+            spriteBatch.DrawString(spriteFont, String.Format("%Drunk = {0}", Player.PercentDrunk), new Vector2(10f, 10f), Color.White);
+            spriteBatch.End();
             
             base.Draw(gameTime);
         }
