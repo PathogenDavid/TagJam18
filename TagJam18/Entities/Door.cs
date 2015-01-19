@@ -28,6 +28,8 @@ namespace TagJam18.Entities
         bool attachUp;
         bool attachDown;
 
+        private bool isDoubleDoor = false;
+
         [TilesetConstructor(4)]
         public Door(Level level, int x, int y)
             : base(level.ParentGame)
@@ -37,22 +39,37 @@ namespace TagJam18.Entities
             mesh = ParentGame.Resources.Get<GeometricPrimitive>(meshId, () => GeometricPrimitive.Cube.New(ParentGame.GraphicsDevice));
             texture = ParentGame.Resources.Get<Texture2D>(textureId, () => ParentGame.Content.Load<Texture2D>("Door"));
             ComputeTransforms();
+
+            CollisionSize = 1f;
+            Position = new Vector3((float)TileX, (float)TileY, 0f);
         }
 
         public void ComputeAdjacency(Level level)
         {
             attachLeft = attachRight = attachUp = attachDown = false;
+            isDoubleDoor = false;
 
-            if (level.GetStaticEntityAt(TileX - 1, TileY) is Wall)
+            Entity left = level.GetStaticEntityAt(TileX - 1, TileY);
+            Entity right = level.GetStaticEntityAt(TileX + 1, TileY);
+            Entity up = level.GetStaticEntityAt(TileX, TileY - 1);
+            Entity down = level.GetStaticEntityAt(TileX, TileY + 1);
+
+            if (left is Wall)
             { attachLeft = true; }
-            else if (level.GetStaticEntityAt(TileX + 1, TileY) is Wall)
+            else if (right is Wall)
             { attachRight = true; }
-            else if (level.GetStaticEntityAt(TileX, TileY - 1) is Wall)
+            else if (up is Wall)
             { attachUp = true; }
-            else if (level.GetStaticEntityAt(TileX, TileY + 1) is Wall)
+            else if (down is Wall)
             { attachDown = true; }
             else
             { attachLeft = true; } // If for some reason the door is floating in space with no walls, attach it on the left.
+
+            if ((attachLeft && right is Door) 
+                || (attachRight && left is Door)
+                || (attachUp && down is Door)
+                || (attachDown && up is Door))
+            { isDoubleDoor = true; }
 
             ComputeTransforms();
         }
@@ -85,7 +102,6 @@ namespace TagJam18.Entities
 
             // Compute the door's world transform
             float offsetAlong = Width / 2f;
-            //offsetAlong = 0f;
             float x = (float)TileX;
             float y = (float)TileY;
 
@@ -99,9 +115,29 @@ namespace TagJam18.Entities
             { worldTransform = Matrix.Translation(x, y + offsetAlong, 0f); }
         }
 
+        private static readonly float rotateTo = MathF.Pi * 0.65f;
+        private float rotationPercent = 0f;
+        private static readonly float rotationSpeed = 2.5f;
+
         public override void Render(GameTime gameTime)
         {
-            ParentGame.BasicEffect.World = modelTransform * worldTransform;
+            // Using cosine to smooth out the animation, makes it look more natural.
+            float actualRotate = -MathF.Cos(rotationPercent * MathF.Pi) / 2f + 0.5f;
+            actualRotate *= rotateTo;
+
+            if (actualRotate < 0f)
+            { actualRotate = 0f; }
+            else if (actualRotate > rotateTo)
+            { actualRotate = rotateTo; }
+
+            actualRotate *= -1f;
+
+            if ((attachLeft && isDoubleDoor) || (attachUp && isDoubleDoor))
+            { actualRotate *= -1f; }
+
+            Debug.Print(actualRotate.ToString());
+
+            ParentGame.BasicEffect.World = modelTransform * Matrix.RotationZ(actualRotate) * worldTransform;
             ParentGame.BasicEffect.Texture = texture;
             ParentGame.BasicEffect.TextureEnabled = true;
 
@@ -109,6 +145,25 @@ namespace TagJam18.Entities
 
             ParentGame.BasicEffect.TextureEnabled = false;
             ParentGame.BasicEffect.Texture = null;
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            if (CollidesWith(ParentGame.Player))
+            {
+                if (rotationPercent < 0f)
+                { rotationPercent = 0f; }
+
+                if (rotationPercent < 1f)
+                { rotationPercent += (float)gameTime.ElapsedGameTime.TotalSeconds * rotationSpeed; }
+            }
+            else if (rotationPercent > 0f)
+            {
+                if (rotationPercent > rotateTo)
+                { rotationPercent = rotateTo; }
+
+                rotationPercent -= (float)gameTime.ElapsedGameTime.TotalSeconds * rotationSpeed;
+            }
         }
 
         protected override void Dispose(bool disposing)

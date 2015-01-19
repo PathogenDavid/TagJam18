@@ -341,8 +341,10 @@ namespace TagJam18
             deadSpeechBubbles.Clear();
         }
 
+        bool tagIsRevisit = false;
         public void StartTagging(TaggingLocation taggingLocation)
         {
+            tagIsRevisit = taggingLocation.IsTagged;
             TaggingTarget = taggingLocation;
             TaggingTarget.IsTagged = true;
         }
@@ -352,7 +354,8 @@ namespace TagJam18
         {
             const long scoreForFinishing = 1000000;
             TaggingTarget = null;
-            numTagsFinished++;
+            if (!tagIsRevisit)
+            { numTagsFinished++; }
             Score += score + scoreForFinishing;
         }
 
