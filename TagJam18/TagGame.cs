@@ -34,6 +34,7 @@ namespace TagJam18
         private DepthStencilBuffer defaultDepthBuffer;
         private RenderTarget2D defaultRenderTarget;
         private RenderTarget2D fullScreenRtt;
+        private RenderTarget2D hudRtt;
         private GeometricPrimitive fullScreenQuad;
         private BasicEffect fullScreenRenderEffect;
         private Effect blurEffect;
@@ -118,6 +119,7 @@ namespace TagJam18
             defaultDepthBuffer = GraphicsDevice.DepthStencilBuffer;
             defaultRenderTarget = GraphicsDevice.BackBuffer;
             fullScreenRtt = RenderTarget2D.New(GraphicsDevice, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, graphics.PreferredBackBufferFormat);
+            hudRtt = RenderTarget2D.New(GraphicsDevice, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, graphics.PreferredBackBufferFormat);
             fullScreenQuad = GeometricPrimitive.Plane.New(GraphicsDevice, 2f, 2f);
 
             fullScreenRenderEffect = new BasicEffect(GraphicsDevice)
@@ -145,6 +147,7 @@ namespace TagJam18
             blurEffect.Dispose();
             fullScreenRenderEffect.Dispose();
             fullScreenQuad.Dispose();
+            hudRtt.Dispose();
             fullScreenRtt.Dispose();
 
             BasicEffect.Dispose();
@@ -161,6 +164,7 @@ namespace TagJam18
         {
             BasicEffect.View = Camera.ViewTransform;
 
+            // Render the game
 #if DEBUG_CULLED_OBJECTS
             GraphicsDevice.SetRasterizerState(gameTime.FrameCount % 2 == 0 ? GraphicsDevice.RasterizerStates.CullBack : GraphicsDevice.RasterizerStates.CullNone);
 #endif
@@ -172,39 +176,65 @@ namespace TagJam18
             { entity.Render(gameTime); }
             EndProtectEntitiesList();
 
+            //Render the HUD
+            GraphicsDevice.SetRenderTargets(hudRtt);
+            GraphicsDevice.Clear(new Color4(0f, 0f, 0f, 0f));
+            GraphicsDevice.SetBlendState(GraphicsDevice.BlendStates.AlphaBlend);
+            spriteBatch.Begin();
+            spriteBatch.DrawString(spriteFont, String.Format("%Drunk = {0}", Player.PercentDrunk), new Vector2(50f, 50f), new Color(1f, 1f, 1f, 0.5f));
+
+            foreach (Entity entity in entities)
+            {
+                if (entity is Wall)
+                { continue; }
+
+                Vector3 v = Vector3.Project(entity.Position, 0f, 0f, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, 0.1f, 100f, BasicEffect.View * BasicEffect.Projection);
+                spriteBatch.DrawString(spriteFont, entity.GetType().ToString(), new Vector2(v.X, v.Y), new Color(1f, 1f, 1f, 0.5f));
+            }
+
+            spriteBatch.End();
+            GraphicsDevice.SetBlendState(GraphicsDevice.BlendStates.Default);
+
+            // Present the final screen
             GraphicsDevice.SetRenderTargets(defaultRenderTarget);
             GraphicsDevice.Clear(Color.Red);
+            ApplyScreenEffects(gameTime, fullScreenRtt, 1f);
+            GraphicsDevice.SetBlendState(GraphicsDevice.BlendStates.AlphaBlend);
+            ApplyScreenEffects(gameTime, hudRtt, 0.05f);
+            GraphicsDevice.SetBlendState(GraphicsDevice.BlendStates.Default);
+            
+            base.Draw(gameTime);
+        }
 
+        private void ApplyScreenEffects(GameTime gameTime, RenderTarget2D rtt, float drunkBlurPower = 1f)
+        {
             if (Player == null || !Player.IsDrunk)
             {
-                //GraphicsDevice.SetBlendState(GraphicsDevice.BlendStates.AlphaBlend);
-                //fullScreenRenderEffect.Alpha = 0.5f;
-                fullScreenRenderEffect.Texture = fullScreenRtt;
+                fullScreenRenderEffect.Texture = rtt;
                 fullScreenQuad.Draw(fullScreenRenderEffect);
-                //GraphicsDevice.SetBlendState(GraphicsDevice.BlendStates.Default);
             }
             else
             {
                 // Set up the blur effect
-                blurEffect.Parameters["RenderTargetTexture"].SetResource(fullScreenRtt);
+                blurEffect.Parameters["RenderTargetTexture"].SetResource(rtt);
                 blurEffect.Parameters["TextureSampler"].SetResource(GraphicsDevice.SamplerStates.Default);
 
                 float time = (float)gameTime.TotalGameTime.TotalSeconds;
 
-                float wobbleScale = Player.PercentDrunk * 0.1f;
+                float wobbleScale = Player.PercentDrunk * 0.1f * drunkBlurPower;
                 Vector2 center = new Vector2(0.5f, 0.5f);
                 center += new Vector2(MathF.Sin(time * 2f) * wobbleScale, MathF.Cos(time / -2f) * wobbleScale);
                 blurEffect.Parameters["Center"].SetValue(center); // Note: Center is in UV coordinates across the render target
 
-                blurEffect.Parameters["BlurWidth"].SetValue(-0.1f * Player.PercentDrunk);
+                blurEffect.Parameters["BlurWidth"].SetValue(-0.1f * Player.PercentDrunk * drunkBlurPower);
 
                 Matrix transform = Matrix.Identity;
 
                 const float minForWobble = 0.5f;
                 if (Player.PercentDrunk > minForWobble)
                 {
-                    const float maxRotateAmount = 0.05f;
-                    const float maxScaleAmount = 0.05f;
+                    const float maxRotateAmount = 0.025f;
+                    const float maxScaleAmount = 0.025f;
                     float percentWobble = (Player.PercentDrunk - minForWobble) / minForWobble;
 
                     float wobbleFactor = MathF.Sin(gameTime.TotalGameTime.TotalSeconds);
@@ -220,20 +250,14 @@ namespace TagJam18
                 // Render the screen
                 fullScreenQuad.Draw(blurEffect);
             }
-
-            // Test sprite stuff:
-            spriteBatch.Begin();
-            spriteBatch.DrawString(spriteFont, String.Format("%Drunk = {0}", Player.PercentDrunk), new Vector2(10f, 10f), Color.White);
-            spriteBatch.End();
-            
-            base.Draw(gameTime);
         }
-
         public KeyboardState Keyboard { get; private set; }
+        public MouseState Mouse { get; private set; }
 
         protected override void Update(GameTime gameTime)
         {
             Keyboard = keyboard.GetState();
+            Mouse = mouse.GetState();
 
             if (Keyboard.IsKeyReleased(Keys.Escape))
             { Exit(); }

@@ -89,9 +89,7 @@ namespace TagJam18.Entities
             { return; }
 
             // First, we merge all tagging locations together
-            Debug.Print("Computing merge for {0},{1}...", tileX, tileY);
             while (MergeWithOtherTaggingLocations()) ;
-            Debug.Print("Done computing merge. Am now {0},{1} {2}x{3}", tileX, tileY, tileWidth, tileHeight);
 
             // Finally, we figure out the wall direction
             if (IsHorizontal)
@@ -109,8 +107,6 @@ namespace TagJam18.Entities
                 else if (entityRight is Wall)
                 { wallDirection = WallDirection.Right; }
             }
-
-            Debug.Print("I have a wall on my {0}", wallDirection);
         }
 
         /// <returns>True if another TaggingLocation was absorbed in this computation</returns>
@@ -118,28 +114,24 @@ namespace TagJam18.Entities
         {
             if (IsHorizontal && entityLeft is TaggingLocation)
             {
-                Debug.Print("Combining with entity on left.");
                 CombineWith((TaggingLocation)entityLeft);
                 return true;
             }
 
             if (IsHorizontal && entityRight is TaggingLocation)
             {
-                Debug.Print("Combining with entity on right.");
                 CombineWith((TaggingLocation)entityRight);
                 return true;
             }
 
             if (IsVertical && entityUp is TaggingLocation)
             {
-                Debug.Print("Combining with entity on up.");
                 CombineWith((TaggingLocation)entityUp);
                 return true;
             }
 
             if (IsVertical && entityDown is TaggingLocation)
             {
-                Debug.Print("Combining with entity on down.");
                 CombineWith((TaggingLocation)entityDown);
                 return true;
             }

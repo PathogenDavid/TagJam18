@@ -37,7 +37,6 @@ float4 PSMain(PSInputTx input) : SV_TARGET
     }
 
     ret /= NumSamples;
-    ret.a = 1.f;
     return ret;
 }
 
