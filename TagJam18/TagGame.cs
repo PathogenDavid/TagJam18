@@ -185,19 +185,19 @@ namespace TagJam18
             //Render the HUD
             GraphicsDevice.SetRenderTargets(hudRtt);
             GraphicsDevice.Clear(new Color4(0f, 0f, 0f, 0f));
-            GraphicsDevice.SetBlendState(GraphicsDevice.BlendStates.AlphaBlend);
-            spriteBatch.Begin();
+            spriteBatch.Begin(SpriteSortMode.Deferred, GraphicsDevice.BlendStates.NonPremultiplied);
+
             spriteBatch.DrawString(spriteFont, String.Format("%Drunk = {0}", Player.PercentDrunk), new Vector2(50f, 50f), new Color(1f, 1f, 1f, 0.5f));
 
             foreach (SpeechBubble bubble in speechBubbles)
             { bubble.Render(gameTime, spriteBatch); }
 
             spriteBatch.End();
-            GraphicsDevice.SetBlendState(GraphicsDevice.BlendStates.Default);
 
             // Present the final screen
             GraphicsDevice.SetRenderTargets(defaultRenderTarget);
             GraphicsDevice.Clear(Color.Red);
+            GraphicsDevice.SetBlendState(GraphicsDevice.BlendStates.Default);
             ApplyScreenEffects(gameTime, fullScreenRtt, 1f);
             GraphicsDevice.SetBlendState(GraphicsDevice.BlendStates.AlphaBlend);
             ApplyScreenEffects(gameTime, hudRtt, 0.05f);

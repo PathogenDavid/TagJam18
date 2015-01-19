@@ -37,13 +37,14 @@ namespace TagJam18
             { return; }
 
             const float floatHeight = 50f;
-            const float scaleAfter = 0.5f;
+            const float disappearAfter = 0.5f;
             Vector3 protectedPosition = Vector3Ex.Project(position, parentGame.GraphicsDevice.Viewport, parentGame.BasicEffect.View * parentGame.BasicEffect.Projection);
             Vector2 screenPosition = new Vector2(protectedPosition.X, protectedPosition.Y - floatHeight * fade);
             Vector2 scale = Vector2.One;
-            if (fade > scaleAfter)
-            { scale = new Vector2(1f, 1f - MathF.Pow((fade - scaleAfter) / (1f - scaleAfter), 2f)); }
-            spriteBatch.DrawString(font, message, screenPosition, Color.White, 0f, messageSize / 2f, scale, SpriteEffects.None, 0f);
+            float alpha = 1f - MathF.Pow((fade - disappearAfter) / (1f - disappearAfter), 2f);
+            if (fade > disappearAfter)
+            { scale = new Vector2(1f, 1f - MathF.Pow((fade - disappearAfter) / (1f - disappearAfter), 2f)); }
+            spriteBatch.DrawString(font, message, screenPosition, new Color(1f, 1f, 1f, alpha), 0f, messageSize / 2f, scale, SpriteEffects.None, 0f);
         }
 
         public void Update(GameTime gameTime)
