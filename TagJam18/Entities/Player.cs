@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using SharpDX;
 using SharpDX.Toolkit;
 using SharpDX.Toolkit.Input;
@@ -14,6 +15,43 @@ namespace TagJam18.Entities
         private const float runSpeed = 2.5f;
 
         public int BeersDranken { get; private set; }
+        /// <summary>
+        /// The amount of beers the player has to drink before the screen starts distorting.
+        /// </summary>
+        public int ToleranceBuzzed { get; private set; }
+        /// <summary>
+        /// The amount of beers the player has to drink before he gets brave enough to tag.
+        /// </summary>
+        public int Tolerance { get; private set; }
+        private const double PercentDrunkExponent = 1.5;
+        public float PercentDrunkRaw
+        {
+            get
+            {
+                if (!IsDrunk)
+                { return 0f; }
+
+                // Cap at 100%
+                if (BeersDranken >= Tolerance)
+                { return 1f; }
+
+                return (float)Math.Pow((double)(BeersDranken - ToleranceBuzzed) / (double)(Tolerance - ToleranceBuzzed), PercentDrunkExponent);
+            }
+        }
+        public bool IsDrunk
+        {
+            get { return BeersDranken >= ToleranceBuzzed; }
+        }
+        public bool IsBrave
+        {
+            get { return BeersDranken >= Tolerance; }
+        }
+
+        /// <summary>
+        /// An interpolated version of PercentDrunkRaw
+        /// </summary>
+        public float PercentDrunk { get; private set; }
+        private const float percentDrunkChangeSpeed = 0.1f;
 
         private Level level;
         
@@ -26,12 +64,16 @@ namespace TagJam18.Entities
             this.Position = new Vector3((float)x, (float)y, -0.5f);
             this.CollisionSize = 1f;
             mesh = ParentGame.Resources.Get<GeometricPrimitive>(meshId, () => GeometricPrimitive.Cylinder.New(ParentGame.GraphicsDevice));
+
             BeersDranken = 0;
+            ToleranceBuzzed = 2;//TODO: Determine this based on the number of beers on the level
+            Tolerance = 6;//TODO: Determine this based on the number of beers on the level
         }
 
         public void DrinkBeer()
         {
             BeersDranken++;
+            Debug.Print("GLUG GLUG GLUG. %Drunk = {0}", PercentDrunkRaw);
         }
 
         public override void Render(GameTime gameTime)
@@ -42,6 +84,15 @@ namespace TagJam18.Entities
 
         public override void Update(GameTime gameTime)
         {
+            // Keep PercentDrunk up-to-date
+            if (Math.Abs(PercentDrunk - PercentDrunkRaw) < 0.001f)
+            { PercentDrunk = PercentDrunkRaw; }
+            else if (PercentDrunk < PercentDrunkRaw)
+            { PercentDrunk += percentDrunkChangeSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds; }
+            else if (PercentDrunk > PercentDrunkRaw)
+            { PercentDrunk -= percentDrunkChangeSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds; }
+            
+            // Handle movement
             float xSpeed = 0f;
             float ySpeed = 0f;
             bool move = false;

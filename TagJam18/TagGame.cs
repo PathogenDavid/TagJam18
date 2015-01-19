@@ -7,6 +7,7 @@ using SharpDX.Direct3D11;
 using SharpDX.Toolkit;
 using SharpDX.Toolkit.Input;
 using SharpDX.Windows;
+using System;
 using System.Diagnostics;
 using System.IO;
 using TagJam18.Entities;
@@ -164,24 +165,51 @@ namespace TagJam18
             GraphicsDevice.SetRenderTargets(defaultRenderTarget);
             GraphicsDevice.Clear(Color.Red);
 
-#if true
-            //GraphicsDevice.SetBlendState(GraphicsDevice.BlendStates.AlphaBlend);
-            //fullScreenRenderEffect.Alpha = 0.5f;
-            fullScreenRenderEffect.Texture = fullScreenRtt;
-            fullScreenQuad.Draw(fullScreenRenderEffect);
-            //GraphicsDevice.SetBlendState(GraphicsDevice.BlendStates.Default);
-#else
-            blurEffect.Parameters["RenderTargetTexture"].SetResource(fullScreenRtt);
-            blurEffect.Parameters["TextureSampler"].SetResource(GraphicsDevice.SamplerStates.Default);
-            const float animScale = 0.1f;
-            Vector2 center = new Vector2(MathF.Sin(gameTime.TotalGameTime.TotalSeconds * 2.0) * animScale, MathF.Cos(gameTime.TotalGameTime.TotalSeconds / -2.0) * animScale);
-            center += new Vector2(0.5f, 0.5f);
-            blurEffect.Parameters["Center"].SetValue(center); // Note: Center is in UV coordinates across the render target
-            blurEffect.Parameters["BlurWidth"].SetValue(-0.1f);
-            blurEffect.Parameters["Transform"].SetValue(Matrix.RotationZ(MathF.Sin(gameTime.TotalGameTime.TotalSeconds) * 0.1f));
-            fullScreenQuad.Draw(blurEffect);
-            //GraphicsDevice.Quad.Draw(blurEffect, true);
-#endif
+            if (Player == null || !Player.IsDrunk)
+            {
+                //GraphicsDevice.SetBlendState(GraphicsDevice.BlendStates.AlphaBlend);
+                //fullScreenRenderEffect.Alpha = 0.5f;
+                fullScreenRenderEffect.Texture = fullScreenRtt;
+                fullScreenQuad.Draw(fullScreenRenderEffect);
+                //GraphicsDevice.SetBlendState(GraphicsDevice.BlendStates.Default);
+            }
+            else
+            {
+                // Set up the blur effect
+                blurEffect.Parameters["RenderTargetTexture"].SetResource(fullScreenRtt);
+                blurEffect.Parameters["TextureSampler"].SetResource(GraphicsDevice.SamplerStates.Default);
+
+                float time = (float)gameTime.TotalGameTime.TotalSeconds;
+
+                float wobbleScale = Player.PercentDrunk * 0.1f;
+                Vector2 center = new Vector2(0.5f, 0.5f);
+                center += new Vector2(MathF.Sin(time * 2f) * wobbleScale, MathF.Cos(time / -2f) * wobbleScale);
+                blurEffect.Parameters["Center"].SetValue(center); // Note: Center is in UV coordinates across the render target
+
+                blurEffect.Parameters["BlurWidth"].SetValue(-0.1f * Player.PercentDrunk);
+
+                Matrix transform = Matrix.Identity;
+
+                const float minForWobble = 0.5f;
+                if (Player.PercentDrunk > minForWobble)
+                {
+                    const float maxRotateAmount = 0.05f;
+                    const float maxScaleAmount = 0.05f;
+                    float percentWobble = (Player.PercentDrunk - minForWobble) / minForWobble;
+
+                    float wobbleFactor = MathF.Sin(gameTime.TotalGameTime.TotalSeconds);
+                    float rotateAmount = maxRotateAmount * percentWobble * wobbleFactor;
+                    float scaleAmount = maxScaleAmount * percentWobble * wobbleFactor;
+
+                    transform *= Matrix.Scaling(1f + Math.Abs(scaleAmount));
+                    transform *= Matrix.RotationZ(rotateAmount);
+                }
+
+                blurEffect.Parameters["Transform"].SetValue(transform);
+
+                // Render the screen
+                fullScreenQuad.Draw(blurEffect);
+            }
             
             base.Draw(gameTime);
         }
