@@ -216,6 +216,7 @@ namespace TagJam18.Entities
         {
             if (disposing)
             {
+                ParentGame.Resources.Drop(textureId, texture);
                 ParentGame.Resources.Drop(meshId, mesh);
             }
         }

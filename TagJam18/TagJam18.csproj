@@ -82,6 +82,7 @@
     <Compile Include="Entities\Player.cs" />
     <Compile Include="ResourcePool.cs" />
     <Compile Include="SharpDXMathEx.cs" />
+    <Compile Include="SpeechBubble.cs" />
     <Compile Include="StaticTileEntityAttribute.cs" />
     <Compile Include="TagGame.cs" />
     <Compile Include="Program.cs" />

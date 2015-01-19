@@ -6,6 +6,11 @@ namespace TagJam18
 {
     public class ResourcePool : IDisposable
     {
+        /// <remarks>
+        /// This class is probably not necessary as I found out after I made it that Toolkit does its own caching internally.
+        /// Whoops!
+        /// On the bright side, this is good for things that don't come from TagGame.Content, like GometricPrimitive instances.
+        /// </remarks>
         class PoolValue
         {
             private WeakReference weakReference;

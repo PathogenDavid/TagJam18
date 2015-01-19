@@ -84,6 +84,11 @@ namespace TagJam18.Entities
 
         public override void Update(GameTime gameTime)
         {
+            if (ParentGame.Keyboard.IsKeyReleased(Keys.Z))
+            {
+                ParentGame.AddSpeechBubble(new SpeechBubble(ParentGame, "This is a test!*.?", Position));
+            }
+
             // Keep PercentDrunk up-to-date
             if (Math.Abs(PercentDrunk - PercentDrunkRaw) < 0.001f)
             { PercentDrunk = PercentDrunkRaw; }

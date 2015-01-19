@@ -12,4 +12,12 @@ namespace TagJam18
             return ret;
         }
     }
+
+    internal static class Vector3Ex
+    {
+        public static Vector3 Project(Vector3 vector, ViewportF viewport, Matrix worldViewProjection)
+        {
+            return Vector3.Project(vector, viewport.X, viewport.Y, viewport.Width, viewport.Height, viewport.MinDepth, viewport.MaxDepth, worldViewProjection);
+        }
+    }
 }

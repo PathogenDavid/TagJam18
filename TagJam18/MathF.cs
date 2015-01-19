@@ -28,5 +28,10 @@ namespace TagJam18
         {
             return (float)Math.Cos(x);
         }
+
+        public static float Pow(float x, float y)
+        {
+            return (float)Math.Pow(x, y);
+        }
     }
 }

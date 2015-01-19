@@ -8,6 +8,7 @@ using SharpDX.Toolkit;
 using SharpDX.Toolkit.Input;
 using SharpDX.Windows;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using TagJam18.Entities;
@@ -41,6 +42,7 @@ namespace TagJam18
 
         private SpriteFont spriteFont;
         private SpriteBatch spriteBatch;
+        private List<SpeechBubble> speechBubbles = new List<SpeechBubble>();
 
         public TagGame()
             : base()
@@ -183,14 +185,8 @@ namespace TagJam18
             spriteBatch.Begin();
             spriteBatch.DrawString(spriteFont, String.Format("%Drunk = {0}", Player.PercentDrunk), new Vector2(50f, 50f), new Color(1f, 1f, 1f, 0.5f));
 
-            foreach (Entity entity in entities)
-            {
-                if (entity is Wall)
-                { continue; }
-
-                Vector3 v = Vector3.Project(entity.Position, 0f, 0f, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, 0.1f, 100f, BasicEffect.View * BasicEffect.Projection);
-                spriteBatch.DrawString(spriteFont, entity.GetType().ToString(), new Vector2(v.X, v.Y), new Color(1f, 1f, 1f, 0.5f));
-            }
+            foreach (SpeechBubble bubble in speechBubbles)
+            { bubble.Render(gameTime, spriteBatch); }
 
             spriteBatch.End();
             GraphicsDevice.SetBlendState(GraphicsDevice.BlendStates.Default);
@@ -251,6 +247,7 @@ namespace TagJam18
                 fullScreenQuad.Draw(blurEffect);
             }
         }
+
         public KeyboardState Keyboard { get; private set; }
         public MouseState Mouse { get; private set; }
 
@@ -266,8 +263,32 @@ namespace TagJam18
             foreach (Entity entity in entities)
             { entity.Update(gameTime); }
             EndProtectEntitiesList();
+
+            foreach (SpeechBubble bubble in speechBubbles)
+            { bubble.Update(gameTime); }
+            ActuallyRemoveSpeechBubbles();
             
             base.Update(gameTime);
+        }
+
+        public void AddSpeechBubble(SpeechBubble newBubble)
+        {
+            speechBubbles.Add(newBubble);
+        }
+
+        private List<SpeechBubble> deadSpeechBubbles = new List<SpeechBubble>();
+        public void RemoveSpeechBubble(SpeechBubble bubble)
+        {
+            deadSpeechBubbles.Add(bubble);
+        }
+
+        private void ActuallyRemoveSpeechBubbles()
+        {
+            foreach (SpeechBubble bubble in deadSpeechBubbles)
+            {
+                speechBubbles.Remove(bubble);
+            }
+            deadSpeechBubbles.Clear();
         }
     }
 }
