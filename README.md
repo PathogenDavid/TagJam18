@@ -1,24 +1,29 @@
-This is my game that I made for The Arbitrary Game Jam #18, it was created in about 72 hours. (I've been wanting to do a game jam for a long time, but things never worked out. So this is actually my first game jam game ever.)
+This is my game that I made for [The Arbitrary Game Jam #18](http://jams.gamejolt.io/tagjam18), it was created in about 72 hours. (I've been wanting to do a game jam for a long time, but things never worked out. So this is actually my first game jam game ever.)
 
 The themes for this jam were:
 * Slewed (Slang for "drunk")
 * Defacement
 * King Charles Spaniel
 
-Additionally, the host, @madmarcel, chose the following two bonus themes:
+Additionally, the host, [@madmarcel](https://twitter.com/madmarcel), chose the following two bonus themes:
 * Adolescence
 * Gigantic
 
 I opted to use all of the themes because the idea that started this game included most of them.
 
 = Controls =
-WASD or Arrows to move
-Shift to sprint
-Space to start tagging (spray graffiti)
-Use the mouse to spray paint
+* WASD or Arrows to move
+* Shift to sprint
+* Space to start tagging (spray graffiti)
+
+When tagging:
+* Move the mouse to aim
+* Left-click to spray paint
+* Right-click to cycle colors
+* Enter to finish tagging
 
 = Story =
-You play as Logan, a young **adolesent** who likes to get **slewed** by drinking **gigantic** beers and **deface** the insides of buildings with grafiti of his favorite type of dog, the **King Charles Spaniel**.
+You play as Logan, a young **adolesent** who likes to get **slewed** by drinking **gigantic** beers and **deface** the insides of buildings with graffiti of his favorite type of dog, the **King Charles Spaniel**.
 
 Of course, nothing so edgy and rebelious is ever that easy. You must also help Logan avoid guards inside the Gigantic TAG Beer factory, the latest canvas for his artwork.
 
@@ -42,8 +47,13 @@ Being a time-constrained game jam, I didn't quite finish everything I set out to
 * My vision included lighting, so you'd have to explore more to find everything and there would be a stealth element to it. Right now the entire level is lit.
 
 = Asset Credits =
-Concrete textures by p0ss - http://opengameart.org/content/p0sss-texture-pack-1
-Brick texture by Georges "TRaK" Grondin and Yves "Evillair" Allaire - http://opengameart.org/content/filth-texture-set-trakbricks2gjpg
-"Sozzled Brain Scoop" by madmarcel was used in beer bottle texture - http://opengameart.org/content/sozzled-brain-scoop
-Drunk full screen shader was based on the radial blur shader by nVidia - http://developer.download.nvidia.com/shaderlibrary/webpages/hlsl_shaders.html#post_radialBlur
-"League Gothic" font by The League of Movable Type - https://www.theleagueofmoveabletype.com/league-gothic
+* Concrete textures by p0ss - http://opengameart.org/content/p0sss-texture-pack-1
+* Brick texture by Georges "TRaK" Grondin and Yves "Evillair" Allaire - http://opengameart.org/content/filth-texture-set-trakbricks2gjpg
+* "Sozzled Brain Scoop" by madmarcel was used in beer bottle texture - http://opengameart.org/content/sozzled-brain-scoop
+* "Sniglet" font used by The Leauge of Movable Type - https://www.theleagueofmoveabletype.com/sniglet
+* Drunk full screen shader was based on the radial blur shader by nVidia - http://developer.download.nvidia.com/shaderlibrary/webpages/hlsl_shaders.html#post_radialBlur
+* "League Gothic" font by The League of Movable Type - https://www.theleagueofmoveabletype.com/league-gothic
+
+The following photos were used to make the graffiti templates:
+* https://en.wikipedia.org/wiki/File:King_Charles_Spaniel_200.jpg
+* https://commons.wikimedia.org/wiki/File:Cavalier-king-charles-spaniels.jpg

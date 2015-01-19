@@ -16,6 +16,8 @@ namespace TagJam18.Entities
         private int tileWidth;
         private int tileHeight;
 
+        public const float TypicalTaggingLocationWidth = 3f;
+
         /// <summary>
         /// True when this tagging location has been absorbed by another tagging location
         /// </summary>
@@ -81,7 +83,7 @@ namespace TagJam18.Entities
             Position = new Vector3((float)x, (float)y, 0f);
 
             mesh = ParentGame.Resources.Get<GeometricPrimitive>(meshId, () => GeometricPrimitive.Plane.New(ParentGame.GraphicsDevice));
-            texture = ParentGame.Resources.Get<Texture2D>(textureId, () => ParentGame.Content.Load<Texture2D>("Orange"));
+            texture = ParentGame.Resources.Get<Texture2D>(textureId, () => ParentGame.Content.Load<Texture2D>("Template1"));
         }
 
         public void ComputeAdjacency(Level level)
@@ -183,7 +185,8 @@ namespace TagJam18.Entities
                     break;
                 case WallDirection.Down:
                     offset = new Vector3(0f, distToWall, 0f);
-                    transform *= Matrix.RotationX(-MathF.Pi / 2f);
+                    transform *= Matrix.RotationX(MathF.Pi / 2f);
+                    transform *= Matrix.RotationZ(MathF.Pi);
                     break;
                 case WallDirection.Left:
                     offset = new Vector3(-distToWall, 0f, 0f);
@@ -205,21 +208,25 @@ namespace TagJam18.Entities
 
             ParentGame.BasicEffect.World = transform;
 
-            if (false)
+            if (true)
             {
+                ParentGame.GraphicsDevice.SetBlendState(ParentGame.GraphicsDevice.BlendStates.NonPremultiplied);
                 ParentGame.BasicEffect.Texture = texture;
                 ParentGame.BasicEffect.TextureEnabled = true;
+                ParentGame.BasicEffect.LightingEnabled = false;
 
                 mesh.Draw(ParentGame.BasicEffect);
 
+                ParentGame.BasicEffect.LightingEnabled = true;
                 ParentGame.BasicEffect.TextureEnabled = false;
                 ParentGame.BasicEffect.Texture = null;
+                ParentGame.GraphicsDevice.SetBlendState(ParentGame.GraphicsDevice.BlendStates.Default);
             }
             else
             {
-                Vector4 oldColor = ParentGame.BasicEffect.DiffuseColor;
                 ParentGame.GraphicsDevice.SetBlendState(ParentGame.GraphicsDevice.BlendStates.AlphaBlend);
                 ParentGame.GraphicsDevice.SetDepthStencilState(ParentGame.GraphicsDevice.DepthStencilStates.DepthRead);
+                Vector4 oldColor = ParentGame.BasicEffect.DiffuseColor;
 
                 // Tagging locations glow more brightly depending on how drunk the player is
                 float percentDrunk = ParentGame.Player == null ? 0f : ParentGame.Player.PercentDrunk;
