@@ -12,6 +12,7 @@ Additionally, the host, [@madmarcel](https://twitter.com/madmarcel), chose the f
 I opted to use all of the themes because the idea that started this game included most of them.
 
 = Controls =
+* Esc to exit
 * WASD or Arrows to move
 * Shift to sprint
 * Space to start tagging (spray graffiti)
@@ -21,6 +22,10 @@ When tagging:
 * Left-click to spray paint
 * Right-click to cycle colors
 * Enter to finish tagging
+
+"Cheats":
+* N to disable the drunk screen effects (Nice for admiring your artwork, even if the effect is neat.)
+* M simulate drinking a beer
 
 = Story =
 You play as Logan, a young **adolesent** who likes to get **slewed** by drinking **gigantic** beers and **deface** the insides of buildings with graffiti of his favorite type of dog, the **King Charles Spaniel**.
@@ -39,12 +44,13 @@ Other tools used:
 * Photoshop CS5.5
 * Blender
 
-= Missing features =
+= Missing features / Known issues =
 Being a time-constrained game jam, I didn't quite finish everything I set out to do. In particular:
 * Right now Logan is a boring gray cylinder, he needs a model of some sort.
 * I never got around to adding guards :(
 * There's only the one level
 * My vision included lighting, so you'd have to explore more to find everything and there would be a stealth element to it. Right now the entire level is lit.
+* There's no sound :(
 
 = Asset Credits =
 * Concrete textures by p0ss - http://opengameart.org/content/p0sss-texture-pack-1
@@ -53,7 +59,4 @@ Being a time-constrained game jam, I didn't quite finish everything I set out to
 * "Sniglet" font used by The Leauge of Movable Type - https://www.theleagueofmoveabletype.com/sniglet
 * Drunk full screen shader was based on the radial blur shader by nVidia - http://developer.download.nvidia.com/shaderlibrary/webpages/hlsl_shaders.html#post_radialBlur
 * "League Gothic" font by The League of Movable Type - https://www.theleagueofmoveabletype.com/league-gothic
-
-The following photos were used to make the graffiti templates:
-* https://en.wikipedia.org/wiki/File:King_Charles_Spaniel_200.jpg
-* https://commons.wikimedia.org/wiki/File:Cavalier-king-charles-spaniels.jpg
+* Picture of a cavalier king charles spaniel by High-town-wp - Used for the graffiti template - https://commons.wikimedia.org/wiki/File:Cavalier-king-charles-spaniels.jpg

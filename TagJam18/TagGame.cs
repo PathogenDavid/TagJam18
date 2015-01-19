@@ -33,6 +33,12 @@ namespace TagJam18
 
         public PlayerCamera Camera { get; private set; }
         public Player Player { get; private set; }
+        public TaggingLocation TaggingTarget { get; private set; }
+
+        public bool IsPlayerTagging
+        {
+            get { return TaggingTarget != null; }
+        }
 
         private DepthStencilBuffer defaultDepthBuffer;
         private RenderTarget2D defaultRenderTarget;
@@ -194,6 +200,11 @@ namespace TagJam18
 
             spriteBatch.End();
 
+            if (IsPlayerTagging)
+            {
+                TaggingTarget.RenderTaggingHud(gameTime);
+            }
+
             // Present the final screen
             GraphicsDevice.SetRenderTargets(defaultRenderTarget);
             GraphicsDevice.Clear(Color.Red);
@@ -206,9 +217,10 @@ namespace TagJam18
             base.Draw(gameTime);
         }
 
+        bool drunkEffectOverride = false;
         private void ApplyScreenEffects(GameTime gameTime, RenderTarget2D rtt, float drunkBlurPower = 1f)
         {
-            if (Player == null || !Player.IsDrunk)
+            if (Player == null || !Player.IsDrunk || drunkEffectOverride)
             {
                 fullScreenRenderEffect.Texture = rtt;
                 fullScreenQuad.Draw(fullScreenRenderEffect);
@@ -221,7 +233,7 @@ namespace TagJam18
 
                 float time = (float)gameTime.TotalGameTime.TotalSeconds;
 
-                float wobbleScale = Player.PercentDrunk * 0.1f * drunkBlurPower;
+                float wobbleScale = Player.PercentDrunk * 0.05f * drunkBlurPower;
                 Vector2 center = new Vector2(0.5f, 0.5f);
                 center += new Vector2(MathF.Sin(time * 2f) * wobbleScale, MathF.Cos(time / -2f) * wobbleScale);
                 blurEffect.Parameters["Center"].SetValue(center); // Note: Center is in UV coordinates across the render target
@@ -260,8 +272,12 @@ namespace TagJam18
             Keyboard = keyboard.GetState();
             Mouse = mouse.GetState();
 
+            //!IsPlayerTagging && 
             if (Keyboard.IsKeyReleased(Keys.Escape))
             { Exit(); }
+
+            if (Keyboard.IsKeyReleased(Keys.N))
+            { drunkEffectOverride = ! drunkEffectOverride; }
 
             ProtectEntitiesList();
             foreach (Entity entity in entities)
@@ -293,6 +309,22 @@ namespace TagJam18
                 speechBubbles.Remove(bubble);
             }
             deadSpeechBubbles.Clear();
+        }
+
+        public void StartTagging(TaggingLocation taggingLocation)
+        {
+            if (taggingLocation.IsTagged)
+            { throw new InvalidOperationException("Can't start tagging a location that is already tagged!"); }
+
+            TaggingTarget = taggingLocation;
+            TaggingTarget.IsTagged = true;
+        }
+
+        private int numTagsFinished = 0;
+        public void FinishTagging()
+        {
+            TaggingTarget = null;
+            numTagsFinished++;
         }
     }
 }

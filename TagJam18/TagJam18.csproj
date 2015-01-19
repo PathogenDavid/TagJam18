@@ -133,6 +133,9 @@
   <ItemGroup>
     <ToolkitTexture Include="Content\Template1.png" />
   </ItemGroup>
+  <ItemGroup>
+    <ToolkitTexture Include="Content\PaintSpray.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\SharpDX.2.6.3\build\SharpDX.targets" Condition="Exists('..\packages\SharpDX.2.6.3\build\SharpDX.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

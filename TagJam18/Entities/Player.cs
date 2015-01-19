@@ -15,7 +15,7 @@ namespace TagJam18.Entities
         private const float walkSpeed = 1.5f;
         private const float runSpeed = 2.5f;
 
-        private string[] NotDrunkEnoughMessage =
+        private static string[] NotDrunkEnoughMessage =
         {
             "I can't make art while I'm sober!",
             "Giant beers first, then tagging!",
@@ -24,7 +24,7 @@ namespace TagJam18.Entities
             "No beer, no spaniels."
         };
 
-        private string[] DrunkEnoughMessage =
+        private static string[] DrunkEnoughMessage =
         {
             "All right, letsh do thish!",
             "*hic*No time like the*hic*present",
@@ -32,7 +32,7 @@ namespace TagJam18.Entities
             "I'd say I'm slewed enough now!"
         };
 
-        private string[] DrinkMessage =
+        private static string[] DrinkMessage =
         {
             "Mmmm, delicious",
             "I love #TAGJAM18 beer!",
@@ -40,7 +40,7 @@ namespace TagJam18.Entities
             "*burp* yum!"
         };
 
-        private string[] DrunkDrinkMessage =
+        private static string[] DrunkDrinkMessage =
         {
             "Mmmm,*hic*delicious",
             "I love*hic*#TAGJAM18 beer!",
@@ -48,14 +48,14 @@ namespace TagJam18.Entities
             "*burp* gettin' there..."
         };
 
-        private string[] BuzzedMessage =
+        private static string[] BuzzedMessage =
         {
             "Got a nice buzz going on.",
             "Now I'm feel'in it!",
             "*burp* that's the stuff!"
         };
 
-        private string[] DoneTaggingMessage =
+        public readonly static string[] DoneTaggingMessage =
         {
             "Arf arf, mother**ker!",
             "Logan: 1, The Man: 0",
@@ -63,7 +63,7 @@ namespace TagJam18.Entities
             "Are you proud of me now, madmarcel?"
         };
 
-        private string[] NotTaggableMessage =
+        private static string[] NotTaggableMessage =
         {
             "Ehh, this isn't the best spot.",
             "I can do better.",
@@ -167,6 +167,10 @@ namespace TagJam18.Entities
 
         public override void Update(GameTime gameTime)
         {
+            // Debug helper to get drunk faster
+            if (ParentGame.Keyboard.IsKeyPressed(Keys.M))
+            { DrinkBeer(); }
+
             // Keep PercentDrunk up-to-date
             if (Math.Abs(PercentDrunk - PercentDrunkRaw) < 0.001f)
             { PercentDrunk = PercentDrunkRaw; }
@@ -174,6 +178,10 @@ namespace TagJam18.Entities
             { PercentDrunk += percentDrunkChangeSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds; }
             else if (PercentDrunk > PercentDrunkRaw)
             { PercentDrunk -= percentDrunkChangeSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds; }
+
+            // Don't process input events if the player is currently tagging
+            if (ParentGame.IsPlayerTagging)
+            { return; }
 
             // Handle movement
             HandleMovement(gameTime);
@@ -260,9 +268,15 @@ namespace TagJam18.Entities
                     ParentGame.AddSpeechBubble(new SpeechBubble(ParentGame, NotDrunkEnoughMessage, Position));
                     return;
                 }
+
+                if (taggingLocation.IsTagged)
+                {
+                    ParentGame.AddSpeechBubble(new SpeechBubble(ParentGame, DoneTaggingMessage, Position));
+                    return;
+                }
                 
                 // If we're brave enough, start the tagging process!
-                ParentGame.AddSpeechBubble(new SpeechBubble(ParentGame, DoneTaggingMessage, Position));
+                ParentGame.StartTagging(taggingLocation);
             }
         }
 
