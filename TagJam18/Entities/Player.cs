@@ -18,7 +18,7 @@ namespace TagJam18.Entities
         private string[] NotDrunkEnoughMessage =
         {
             "I can't make art while I'm sober!",
-            "But...giant beers!",
+            "Giant beers first, then tagging!",
             "Not until I'm slewed!",
             "Need...TAG...beer...",
             "No beer, no spaniels."
@@ -63,10 +63,11 @@ namespace TagJam18.Entities
             "Are you proud of me now, madmarcel?"
         };
 
-        private string NotTaggableMessage =
+        private string[] NotTaggableMessage =
         {
             "Ehh, this isn't the best spot.",
             "I can do better.",
+            "This is a weird spot to tag..."
         };
 
         public int BeersDranken { get; private set; }
@@ -173,8 +174,16 @@ namespace TagJam18.Entities
             { PercentDrunk += percentDrunkChangeSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds; }
             else if (PercentDrunk > PercentDrunkRaw)
             { PercentDrunk -= percentDrunkChangeSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds; }
-            
+
             // Handle movement
+            HandleMovement(gameTime);
+
+            // Handle tagging
+            HandleTagging(gameTime);
+        }
+
+        private void HandleMovement(GameTime gameTime)
+        {
             float xSpeed = 0f;
             float ySpeed = 0f;
             bool move = false;
@@ -231,6 +240,29 @@ namespace TagJam18.Entities
             if (!stoppedX || !stoppedY)
             {
                 Position += velocity;
+            }
+        }
+
+        private void HandleTagging(GameTime gameTime)
+        {
+            if (ParentGame.Keyboard.IsKeyPressed(Keys.Space))
+            {
+                TaggingLocation taggingLocation = level.GetStaticEntityAt((int)Math.Round(Position.X), (int)Math.Round(Position.Y)) as TaggingLocation;
+
+                if (taggingLocation == null)
+                {
+                    ParentGame.AddSpeechBubble(new SpeechBubble(ParentGame, NotTaggableMessage, Position));
+                    return;
+                }
+                
+                if (!IsBrave)
+                {
+                    ParentGame.AddSpeechBubble(new SpeechBubble(ParentGame, NotDrunkEnoughMessage, Position));
+                    return;
+                }
+                
+                // If we're brave enough, start the tagging process!
+                ParentGame.AddSpeechBubble(new SpeechBubble(ParentGame, DoneTaggingMessage, Position));
             }
         }
 
