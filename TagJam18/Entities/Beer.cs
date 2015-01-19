@@ -24,22 +24,20 @@ namespace TagJam18.Entities
             mesh = ParentGame.Resources.Get<Model>(meshId, () => ParentGame.Content.Load<Model>("BeerBottle"));
             texture = ParentGame.Resources.Get<Texture2D>(textureId, () => ParentGame.Content.Load<Texture2D>("BeerBottleTexture"));
 
-            Random r = new Random();
-
             const float idealRotation = -1f; // Has the label facing the camera for our default camera angle.
             float rotationVariance = MathF.Pi / 2f;
-            float rotation = r.NextFloat(-rotationVariance, rotationVariance) + idealRotation;
+            float rotation = ParentGame.Random.NextFloat(-rotationVariance, rotationVariance) + idealRotation;
 
             const float positionVariance = 0.3f;
-            float xOff = r.NextFloat(-positionVariance, positionVariance);
-            float yOff = r.NextFloat(-positionVariance, positionVariance);
+            float xOff = ParentGame.Random.NextFloat(-positionVariance, positionVariance);
+            float yOff = ParentGame.Random.NextFloat(-positionVariance, positionVariance);
             Position += new Vector3(xOff, yOff, 0f);
 
             // Flip the model over * orient bottle * move bottom of bottle to proper bottom * make bottle smaller * apply random position offset
             baseTransform = Matrix.RotationX(MathF.Pi) * Matrix.RotationZ(rotation) * Matrix.Translation(0f, 0f, -1f);
 
             const float sizeVariance = 0.05f;
-            size = 0.55f + r.NextFloat(-sizeVariance, sizeVariance);
+            size = 0.55f + ParentGame.Random.NextFloat(-sizeVariance, sizeVariance);
             CollisionSize = size;
         }
 

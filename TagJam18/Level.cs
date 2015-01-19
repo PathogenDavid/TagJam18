@@ -167,17 +167,17 @@ namespace TagJam18
             int maxDecalX = (int)(GroundWidth / groundTextureSize);
             int maxDecalY = (int)(GroundHeight / groundTextureSize);
             int maxNumDecals = maxDecalX * maxDecalY;
-            Random r = new Random();
+            
             int numDecals;
             if (minNumGroundDecals < maxNumDecals)
-            { numDecals = r.Next(minNumGroundDecals, maxNumDecals); }
+            { numDecals = ParentGame.Random.Next(minNumGroundDecals, maxNumDecals); }
             else
             { numDecals = maxNumDecals = minNumGroundDecals; }
 
             for (int i = 0, attempts = 0; i < numDecals && attempts < 5; i++, attempts++)
             {
-                int x = r.Next(maxDecalX);
-                int y = r.Next(maxDecalY);
+                int x = ParentGame.Random.Next(maxDecalX);
+                int y = ParentGame.Random.Next(maxDecalY);
 
                 if (!IsDecalSpotFree(x, y))
                 {
@@ -185,7 +185,7 @@ namespace TagJam18
                     continue;
                 }
 
-                decals.Add(new GroundDecal(r.Next(0, concreteDecals.Count), x, y));
+                decals.Add(new GroundDecal(ParentGame.Random.Next(0, concreteDecals.Count), x, y));
             }
         }
 

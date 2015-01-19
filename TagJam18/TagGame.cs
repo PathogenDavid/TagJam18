@@ -25,6 +25,8 @@ namespace TagJam18
         private readonly MouseManager mouse;
         private Level level;
 
+        public Random Random { get; private set; }
+
         public ResourcePool Resources { get; private set; }
 
         internal BasicEffect BasicEffect;
@@ -53,6 +55,8 @@ namespace TagJam18
             GameSystems.Add(new EffectCompilerSystem(this));
 
             Content.RootDirectory = "Content";
+
+            this.Random = new Random();
         }
 
         protected override void Initialize()
