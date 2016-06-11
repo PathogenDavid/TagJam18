@@ -31,9 +31,9 @@ I opted to use all of the themes because the idea that started this game include
 * M simulate drinking a beer
 
 # Story
-You play as Logan, a young *adolesent* who likes to get *slewed* by drinking *gigantic* beers and *deface* the insides of buildings with graffiti of his favorite type of dog, the *King Charles Spaniel*.
+You play as Logan, a young *adolescent* who likes to get *slewed* by drinking *gigantic* beers and *deface* the insides of buildings with graffiti of his favorite type of dog, the *King Charles Spaniel*.
 
-Of course, nothing so edgy and rebelious is ever that easy. You must also help Logan avoid guards inside the Gigantic TAG Beer factory, the latest canvas for his artwork.
+Of course, nothing so edgy and rebellious is ever that easy. You must also help Logan avoid guards inside the Gigantic TAG Beer factory, the latest canvas for his artwork.
 
 Note that Logan can only paint while slewed. He also has trouble seeing the ideal locations for his artwork when he is sober, so you might not see them until he starts to get tipsy.
 
